@@ -33,7 +33,7 @@ class FaceDetection(object):
     def _postprocess(self, bboxes):
         new_bboxes = []
         for bbox in bboxes[0][0]:
-            if bbox[2] > 0.5:
+            if bbox[2] > 0.9:
                 new_bboxes.append(bbox[3:7])
         return new_bboxes
 
@@ -42,5 +42,3 @@ class FaceDetection(object):
         infer_output = self._infer(image)
         bboxes = self._postprocess(infer_output)
         return bboxes
-
-
