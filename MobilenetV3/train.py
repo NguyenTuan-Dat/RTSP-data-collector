@@ -28,8 +28,10 @@ def get_parser():
     parser.add_argument('--test_tfrecords_file_path', default='/content/Data/faces-spring-2020-test.tfrecords',
                         type=str,
                         help='path to the testing datasets of tfrecords file path')
-    parser.add_argument('--ckpt_path', default='./ckpt', help='the ckpt file save path')
-    parser.add_argument('--ckpt_best_path', default='./ckpt_best', help='the best ckpt file save path')
+    parser.add_argument('--ckpt_path', default='/content/drive/MyDrive/Colab Notebooks/HumanFacesRecognition/',
+                        help='the ckpt file save path')
+    parser.add_argument('--ckpt_best_path', default='/content/drive/MyDrive/Colab Notebooks/HumanFacesRecognition/',
+                        help='the best ckpt file save path')
     parser.add_argument('--log_file_path', default='./logs', help='the log file save path')
     parser.add_argument('--buffer_size', default=10000, help='tf dataset api buffer size')
     parser.add_argument('--ckpt_interval', default=500, help='intervals to save ckpt file')
@@ -118,7 +120,7 @@ if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     args = get_parser()
 
-    lr_schedule = [0.05, 0.01, 0.001, 0.0001]
+    lr_schedule = args.lr_schedule
 
     # create log dir
     subdir = datetime.strftime(datetime.now(), '%Y%m%d-%H%M%S')
