@@ -18,9 +18,6 @@ def convert_to(path_to_dir, images, labels, name):
     if images.shape[0] != num_examples:
         raise ValueError("Images size %d does not match label size %d." %
                          (images.shape[0], num_examples))
-    rows = images.shape[1]
-    cols = images.shape[2]
-    depth = images.shape[3]
 
     filename = os.path.join(path_to_dir, name + '.tfrecords')
     print('Writing', filename)
@@ -28,11 +25,8 @@ def convert_to(path_to_dir, images, labels, name):
     for index in range(num_examples):
         image_raw = images[index].tostring()
         example = tf.train.Example(features=tf.train.Features(feature={
-            'height': _int64_feature(rows),
-            'width': _int64_feature(cols),
-            'depth': _int64_feature(depth),
-            'label': _int64_feature(int(labels[index])),
-            'image_raw': _bytes_feature(image_raw)}))
+            'image_raw': _bytes_feature(image_raw),
+            'label': _int64_feature(int(labels[index]))}))
         writer.write(example.SerializeToString())
 
 
@@ -44,16 +38,15 @@ def read_files(path_to_dir):
         if ".DS_Store" == dir:
             continue
         for img_name in os.listdir(path_to_folder):
-            if img_name == ".DS_Store":
+            if ".DS_Store" == img_name:
                 continue
             label = -1
             if "Glass" in dir:
                 label = 1
             if "Normal" in dir:
                 label = 0
-
-            img = cv2.imread(os.path.join(path_to_folder, img_name))
-            img = cv2.resize(img, (224, 224))
+            with open(os.path.join(path_to_folder, img_name), 'rb') as f:
+                img = f.read()
             images.append(img)
             labels.append(label)
 
@@ -63,7 +56,7 @@ def read_files(path_to_dir):
     return images, labels
 
 
-PATH_TO_DIR = "/Users/ntdat/Downloads/faces-spring-2020"
+PATH_TO_DIR = "/Users/ntdat/Downloads/faces-spring-2020-224x224"
 images, labels = read_files(PATH_TO_DIR)
 convert_to(PATH_TO_DIR, images[:4500], labels[:4500], "faces-spring-2020-train")
 convert_to(PATH_TO_DIR, images[4500:], labels[4500:], "faces-spring-2020-test")

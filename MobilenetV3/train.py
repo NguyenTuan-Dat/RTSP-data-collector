@@ -79,11 +79,11 @@ def evaluation(log_dir, datasets, model, summary_writer, loss_fn, lr, step):
 
 @tf.function
 def train_parse_function(example_proto):
-    features = {'rgb_raw': tf.io.FixedLenFeature([], tf.string),
+    features = {'image_raw': tf.io.FixedLenFeature([], tf.string),
                 'label': tf.io.FixedLenFeature([], tf.int64)}
     features = tf.io.parse_single_example(example_proto, features)
     # You can do more image distortion here for training data
-    img = tf.image.decode_jpeg(features['rgb_raw'])
+    img = tf.image.decode_png(features['image_raw'])
     img = tf.reshape(img, (224, 224, 3))
     h, w, c = img.shape
     if h != 224 or w != 224 or c != 3:
@@ -98,11 +98,11 @@ def train_parse_function(example_proto):
 
 @tf.function
 def test_parse_function(example_proto):
-    features = {'rgb_raw': tf.io.FixedLenFeature([], tf.string),
+    features = {'image_raw': tf.io.FixedLenFeature([], tf.string),
                 'label': tf.io.FixedLenFeature([], tf.int64)}
     features = tf.io.parse_single_example(example_proto, features)
     # You can do more image distortion here for training data
-    img = tf.image.decode_jpeg(features['rgb_raw'])
+    img = tf.image.decode_jpeg(features['image_raw'])
     img = tf.reshape(img, (224, 224, 3))
     h, w, c = img.shape
     if h != 224 or w != 224 or c != 3:
