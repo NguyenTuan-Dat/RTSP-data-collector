@@ -162,7 +162,7 @@ if __name__ == '__main__':
         depth_multiplier=1,
         dropout=0.001,
         include_top=True,
-        weights="imagenet",
+        weights=None,
         input_tensor=None,
         pooling=None,
         classes=args.classes_number,
