@@ -225,6 +225,6 @@ if __name__ == '__main__':
 
     # save finnal parameters
     ckpt_path = os.path.join(output_dir, f'MobileNetV3_final.h5')
-    model.save(ckpt_path)
+    tf.saved_model.save(model, os.path.join(output_dir, f'MobileNetV3_final'))
     # final test
     evaluation(log_dir, test_dataset, model, summary_writer, loss_fn, lr, step)
