@@ -19,7 +19,8 @@ def get_parser():
     parser.add_argument('--input_shape', default=(224, 224, 3), help='the input size！')
     parser.add_argument('--classes_number', type=int, default=2, help='class number depend on your training datasets！')
     parser.add_argument('--weight_decay', default=2e-4, help='L2 weight regularization.')
-    parser.add_argument('--lr_schedule', help='Number of epochs for learning rate piecewise.', default=[1, 2, 3])
+    parser.add_argument('--lr_schedule', help='Number of epochs for learning rate piecewise.',
+                        default=[1e-4, 1e-5, 5e-6, 1e-6])
     parser.add_argument('--train_batch_size', default=32, help='batch size of training.')
     parser.add_argument('--test_batch_size', default=32, help='batch size of testing.')
     parser.add_argument('--train_tfrecords_file_path', default='/content/Data/faces-spring-2020-train.tfrecords',
@@ -120,7 +121,7 @@ if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
     args = get_parser()
 
-    lr_schedule = args.lr_schedule
+    lr_schedule = [1e-3, 1e-4, 5e-5, 1e-5]
 
     # create log dir
     subdir = datetime.strftime(datetime.now(), '%Y%m%d-%H%M%S')
