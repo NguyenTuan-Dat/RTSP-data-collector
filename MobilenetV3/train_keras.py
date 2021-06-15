@@ -3,6 +3,18 @@ import tensorflow as tf
 import numpy as np
 import argparse
 import os
+import cv2
+
+
+def custom_mean_squared_error(y_trues, y_pred):
+    y_t = []
+    for y_true in y_trues:
+        if y_true == 1:
+            y_t.append([0, 1])
+        else:
+            y_t.append([1, 0])
+    y_true = np.asarray(y_t)
+    return tf.math.reduce_mean(tf.square(y_true - y_pred))
 
 
 def get_parser():
@@ -61,7 +73,31 @@ def evaluation(log_dir, datasets, model, summary_writer, loss_fn, lr, step):
         total_predict.extend(batch_correct_prediction)
         count += len(labels)
 
+    img_1 = cv2.imread("/content/face-3179.png")
+    img_1 = cv2.cvtColor(img_1, cv2.COLOR_BGR2RGB)
+    img_1 = cv2.resize(img_1, (224, 224))
+
+    img_2 = cv2.imread("/content/face-860.png")
+    img_2 = cv2.cvtColor(img_2, cv2.COLOR_BGR2RGB)
+    img_2 = cv2.resize(img_2, (224, 224))
+
+    img = []
+    img.append(img_1)
+    img.append(img_2)
+
+    img = np.asarray(img)
+
+    print(img.shape)
+
+    logits = model(img, training=False)
+    pred = tf.nn.softmax(logits)
+    batch_correct_prediction = batch_evaluation(pred, [1, 0])
+    print("pred_test", pred)
+    print("logits_test", logits)
+    print("batch_correct_prediction_test", batch_correct_prediction)
+
     total_predict = np.asarray(total_predict)
+    print(total_predict)
     Accuracy = tf.reduce_mean(total_predict)
     mean_loss = total_loss / loss_count
     print(f'test total images {count}, Accuracy is {Accuracy}, Mean loss is {mean_loss}, lr is {lr}!')
@@ -86,8 +122,6 @@ def train_parse_function(example_proto):
     if h != 224 or w != 224 or c != 3:
         assert 0, "Assert! Input image shape should be (224, 224, 3)!!!"
     img = tf.cast(img, dtype=tf.float32)
-    img = tf.subtract(img, 127.5)
-    img = tf.multiply(img, 0.0078125)
     img = tf.image.random_flip_left_right(img)
     label = tf.cast(features['label'], tf.int64)
     return img, label
@@ -104,9 +138,6 @@ def test_parse_function(example_proto):
     h, w, c = img.shape
     if h != 224 or w != 224 or c != 3:
         assert 0, "Assert! Input image shape should be (224, 224, 3)!!!"
-    img = tf.cast(img, dtype=tf.float32)
-    img = tf.subtract(img, 127.5)
-    img = tf.multiply(img, 0.0078125)
     label = tf.cast(features['label'], tf.int64)
     return img, label
 
@@ -169,6 +200,9 @@ if __name__ == '__main__':
         classifier_activation="softmax"
     )
 
+    model.compile(optimizer=optimizer, loss=custom_mean_squared_error,
+                  metrics=[tf.compat.v1.keras.metrics.SparseCategoricalAccuracy()])
+
     tf.keras.backend.set_learning_phase(True)
     # model architecture write to file
     fd = open(f'./misc/MobileNetV3_{args.model_type}.txt', "w")
@@ -191,11 +225,12 @@ if __name__ == '__main__':
         for i, (images, labels) in enumerate(train_dataset):
             with tf.GradientTape() as tape:
                 logits = model(images, training=args.train_phase)
-                regularization_loss = model.losses
+                # regularization_loss = model.losses
                 # logits = tf.nn.l2_normalize(logits, 1, 1e-10, name='logits')
-                pred = tf.nn.softmax(logits)
-                pred_loss = loss_fn(labels, pred)
-                loss_value = pred_loss + regularization_loss
+                # pred = tf.nn.softmax(logits)
+                print("pred", logits[0], "label", labels[0])
+                pred_loss = custom_mean_squared_error(labels, logits)
+                loss_value = pred_loss
 
             trainable_variables = model.trainable_variables
             grads = tape.gradient(loss_value, trainable_variables)
@@ -220,6 +255,8 @@ if __name__ == '__main__':
                 # model.save_weights(ckpt_path, save_format='tf')
                 ckpt_path = os.path.join(output_dir, f'MobileNetV3_{args.model_type}_{step}.h5')
                 model.save(ckpt_path)
+                model_json = model.to_json()
+                open(os.path.join(output_dir, 'model.json'), 'w').write(model_json)
 
             if step % args.validate_interval == 0:
                 evaluation(log_dir, test_dataset, model, summary_writer, loss_fn, lr, step)

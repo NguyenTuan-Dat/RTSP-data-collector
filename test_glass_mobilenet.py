@@ -15,8 +15,8 @@ args = parser.parse_args()
 FACEDETECTION_XML_PATH = "./models/face-detection-retail-0004.xml"
 FACEDETECTION_BIN_PATH = "./models/face-detection-retail-0004.bin"
 
-GLASS_MOBILENET_XML_PATH = "./models/glass_tf.xml"
-GLASS_MOBILENET_BIN_PATH = "./models/glass_tf.bin"
+GLASS_MOBILENET_XML_PATH = "/Volumes/JIOOUM/glass_tf_4000.xml"
+GLASS_MOBILENET_BIN_PATH = "/Volumes/JIOOUM/glass_tf_4000.bin"
 
 ie = IECore()
 
@@ -112,12 +112,9 @@ else:
             continue
 
         for r, d, fs in os.walk(os.path.join("/Users/ntdat/Downloads/faces-spring-2020", dir)):
-            if "Glass" in r:
-                continue
             for f in fs:
                 if ".png" in f:
                     img = cv2.imread(os.path.join(r, f))
-                    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                     result = glass_detector.detect(img)
 
                     print(result)
@@ -125,4 +122,4 @@ else:
                     cv2.putText(img, text=str(result), org=(50, 50), fontFace=cv2.INTER_AREA, fontScale=1,
                                 color=color)
                     cv2.imshow("AloAlo", img)
-                    cv2.waitKey(1)
+                    cv2.waitKey()
