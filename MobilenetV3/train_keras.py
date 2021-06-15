@@ -157,7 +157,7 @@ if __name__ == '__main__':
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy()
 
     model = tf.keras.applications.MobileNet(
-        input_shape=None,
+        input_shape=(224, 224, 3),
         alpha=1.0,
         depth_multiplier=1,
         dropout=0.001,
@@ -165,7 +165,7 @@ if __name__ == '__main__':
         weights=None,
         input_tensor=None,
         pooling=None,
-        classes=args.classes_number,
+        classes=2,
         classifier_activation="softmax"
     )
 

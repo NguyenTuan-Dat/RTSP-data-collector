@@ -1,3 +1,4 @@
+import numpy
 import tensorflow as tf
 import os
 import cv2
@@ -52,7 +53,27 @@ def read_files(path_to_dir):
 
     images, labels = np.array(images), np.array(labels)
 
+    concat = np.stack((images, labels), axis=1)
+
+    np.random.shuffle(concat)
+
+    concat = concat.T
+
+    print(concat.shape)
+
+    images, labels = concat[0], concat[1]
+
+    # print(images, labels)
+
+    # for i, label in enumerate(labels):
+    #     nparr = np.fromstring(images[i], np.uint8)
+    #     img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    #     cv2.putText(img_np, str(label), (50, 50), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color=(0, 255, 0))
+    #     cv2.imshow("AloAlo", img_np)
+    #     cv2.waitKey()
+
     print(images.shape, labels.shape)
+
     return images, labels
 
 
