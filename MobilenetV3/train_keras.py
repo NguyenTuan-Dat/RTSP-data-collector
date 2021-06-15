@@ -225,10 +225,6 @@ if __name__ == '__main__':
         for i, (images, labels) in enumerate(train_dataset):
             with tf.GradientTape() as tape:
                 logits = model(images, training=args.train_phase)
-                # regularization_loss = model.losses
-                # logits = tf.nn.l2_normalize(logits, 1, 1e-10, name='logits')
-                # pred = tf.nn.softmax(logits)
-                print("pred", logits[0], "label", labels[0])
                 pred_loss = custom_mean_squared_error(labels, logits)
                 loss_value = pred_loss
 
