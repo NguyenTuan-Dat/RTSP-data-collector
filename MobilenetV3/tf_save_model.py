@@ -16,11 +16,11 @@ model = tf.keras.applications.MobileNet(
     classes=2,
     classifier_activation="softmax"
 )
-model.load_weights("/Users/ntdat/Downloads/MobileNetV3_large_500 (1).h5")
+model.load_weights("/Users/ntdat/Downloads/MobileNetV3_large_500 (3).h5")
 
 # convert to onnx model
 onnx_model = keras2onnx.convert_keras(model, model.name)
 
-temp_model_file = 'model.onnx'
+temp_model_file = 'glass_tf.onnx'
 keras2onnx.save_model(onnx_model, temp_model_file)
 sess = onnxruntime.InferenceSession(temp_model_file)

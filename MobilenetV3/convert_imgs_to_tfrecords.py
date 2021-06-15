@@ -65,12 +65,12 @@ def read_files(path_to_dir):
 
     # print(images, labels)
 
-    # for i, label in enumerate(labels):
-    #     nparr = np.fromstring(images[i], np.uint8)
-    #     img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-    #     cv2.putText(img_np, str(label), (50, 50), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color=(0, 255, 0))
-    #     cv2.imshow("AloAlo", img_np)
-    #     cv2.waitKey()
+    for i, label in enumerate(labels):
+        nparr = np.fromstring(images[i], np.uint8)
+        img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        cv2.putText(img_np, str(label), (50, 50), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1, color=(0, 255, 0))
+        cv2.imshow("AloAlo", img_np)
+        cv2.waitKey()
 
     print(images.shape, labels.shape)
 
@@ -79,5 +79,5 @@ def read_files(path_to_dir):
 
 PATH_TO_DIR = "/Users/ntdat/Downloads/faces-spring-2020-224x224"
 images, labels = read_files(PATH_TO_DIR)
-convert_to(PATH_TO_DIR, images[:4500], labels[:4500], "faces-spring-2020-train")
-convert_to(PATH_TO_DIR, images[4500:], labels[4500:], "faces-spring-2020-test")
+# convert_to(PATH_TO_DIR, images[:4500], labels[:4500], "faces-spring-2020-train")
+# convert_to(PATH_TO_DIR, images[4500:], labels[4500:], "faces-spring-2020-test")

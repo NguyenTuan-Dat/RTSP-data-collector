@@ -9,7 +9,7 @@ def get_parser():
     parser = argparse.ArgumentParser(description='parameters to train net')
     parser.add_argument('--train_phase', type=bool, default=True, help='train phase, true or false!')
     parser.add_argument('--model_type', type=str, default="large", help='model type, choice large or small!')
-    parser.add_argument('--max_epoch', default=4, help='max epoch to train the network！')
+    parser.add_argument('--max_epoch', default=30, help='max epoch to train the network！')
     parser.add_argument('--input_shape', default=(224, 224, 3), help='the input size！')
     parser.add_argument('--classes_number', type=int, default=2, help='class number depend on your training datasets！')
     parser.add_argument('--weight_decay', default=2e-4, help='L2 weight regularization.')
@@ -152,7 +152,7 @@ if __name__ == '__main__':
     lr = learning_rate_fn(epoch_var)
 
     # Instantiate an optimizer, special change optimizers in here if need.
-    optimizer = tf.keras.optimizers.SGD(learning_rate=lr)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
     # Instantiate a loss function， customer loss function can insert in here.
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy()
 
@@ -191,7 +191,7 @@ if __name__ == '__main__':
         for i, (images, labels) in enumerate(train_dataset):
             with tf.GradientTape() as tape:
                 logits = model(images, training=args.train_phase)
-                regularization_loss = tf.math.add_n(model.losses)
+                regularization_loss = model.losses
                 # logits = tf.nn.l2_normalize(logits, 1, 1e-10, name='logits')
                 pred = tf.nn.softmax(logits)
                 pred_loss = loss_fn(labels, pred)
