@@ -15,8 +15,8 @@ args = parser.parse_args()
 FACEDETECTION_XML_PATH = "./models/face-detection-retail-0004.xml"
 FACEDETECTION_BIN_PATH = "./models/face-detection-retail-0004.bin"
 
-GLASS_MOBILENET_XML_PATH = "/Volumes/JIOOUM/glass_large_6500_224.xml"
-GLASS_MOBILENET_BIN_PATH = "/Volumes/JIOOUM/glass_large_6500_224.bin"
+GLASS_MOBILENET_XML_PATH = "/Volumes/JIOOUM/net_adam_5-0001.xml"
+GLASS_MOBILENET_BIN_PATH = "/Volumes/JIOOUM/net_adam_5-0001.bin"
 
 ie = IECore()
 

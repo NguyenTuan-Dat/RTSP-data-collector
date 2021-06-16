@@ -26,7 +26,7 @@ class GlassMobilenet(object):
 
     def _preprocess(self, image):
         processed_image = np.expand_dims(resize(image, (224, 224)), axis=0)
-        # processed_image = processed_image.transpose((0, 3, 1, 2))
+        processed_image = processed_image.transpose((0, 3, 1, 2))
         return processed_image
 
     def detect(self, image):

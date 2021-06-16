@@ -298,7 +298,7 @@ class MobileNetV3(nn.HybridBlock):
             self.layers.append(HSwish())
             self.layers.append(conv_1x1_bn(last_channel, HSwish()))
             self.layers.append(Flatten())
-            self.layers.append(nn.Dense(10))
+            self.layers.append(nn.Dense(classes))
 
         self._layers = nn.HybridSequential()
         self._layers.add(*self.layers)
