@@ -19,24 +19,31 @@ def resize_input_data(path_to_data):
     if not os.path.exists(path_to_save):
         os.mkdir(path_to_save)
     dirs = os.listdir(path_to_data)
-    for dir in dirs:
+    for case in dirs:
         if dir == ".DS_Store":
             continue
-        path_to_dir = os.path.join(path_to_data, dir)
-        path_to_dir_save = os.path.join(path_to_save, dir)
-        if not os.path.exists(path_to_dir_save):
-            os.mkdir(path_to_dir_save)
 
-        image_names = os.listdir(path_to_dir)
-        for image_name in image_names:
-            if image_name == ".DS_Store":
-                continue
-            try:
-                image = cv2.imread(os.path.join(path_to_dir, image_name))
-                image = cv2.resize(image, (INPUT_SHAPE, INPUT_SHAPE))
-                cv2.imwrite(os.path.join(path_to_dir_save, image_name), image)
-            except Exception as ex:
-                print(ex)
+        path_to_train_or_test = os.path.join(path_to_data, case)
+        path_to_train_or_test_save = os.path.join(path_to_save, case)
+        if not os.path.exists(path_to_train_or_test_save):
+            os.mkdir(path_to_train_or_test_save)
+
+        for dir in os.listdir(path_to_train_or_test):
+            path_to_dir = os.path.join(path_to_train_or_test, dir)
+            path_to_dir_save = os.path.join(path_to_train_or_test_save, dir)
+            if not os.path.exists(path_to_dir_save):
+                os.mkdir(path_to_dir_save)
+
+            image_names = os.listdir(path_to_dir)
+            for image_name in image_names:
+                if image_name == ".DS_Store":
+                    continue
+                try:
+                    image = cv2.imread(os.path.join(path_to_dir, image_name))
+                    image = cv2.resize(image, (INPUT_SHAPE, INPUT_SHAPE))
+                    cv2.imwrite(os.path.join(path_to_dir_save, image_name), image)
+                except Exception as ex:
+                    print(ex)
 
     return path_to_save
 
@@ -48,7 +55,7 @@ def acc(output, label):
             label.astype('float32')).mean().asscalar()
 
 
-path_to_data_resized = resize_input_data('/content/RTSP-data-collector/TestTrain/faces-spring-2020-224_mxnet')
+path_to_data_resized = resize_input_data('/content/faces-spring-2020-224_mxnet')
 
 mnist_train = mx.gluon.data.vision.datasets.ImageFolderDataset(
     os.path.join(path_to_data_resized, 'train'))
