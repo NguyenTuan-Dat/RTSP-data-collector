@@ -12,6 +12,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--cam", "-c", action="store_true")
 args = parser.parse_args()
 
+INPUT_SHAPE = 112
+
 # path to models
 FACEDETECTION_XML_PATH = "./models/face-detection-retail-0004.xml"
 FACEDETECTION_BIN_PATH = "./models/face-detection-retail-0004.bin"
@@ -24,7 +26,7 @@ ie = IECore()
 # Create FaceDetection model
 facedetection = FaceDetection(ie, FACEDETECTION_XML_PATH, FACEDETECTION_BIN_PATH)
 
-glass_detector = GlassMobilenet(ie, GLASS_MOBILENET_XML_PATH, GLASS_MOBILENET_BIN_PATH)
+glass_detector = GlassMobilenet(ie, GLASS_MOBILENET_XML_PATH, GLASS_MOBILENET_BIN_PATH, INPUT_SHAPE)
 
 color = (0, 255, 0)
 

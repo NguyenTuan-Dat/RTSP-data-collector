@@ -10,7 +10,7 @@ from fmobilenetv3 import MobileNetV3
 import time
 import os
 
-NUM_CLASSES = 2
+NUM_CLASSES = 3
 INPUT_SHAPE = 112
 
 

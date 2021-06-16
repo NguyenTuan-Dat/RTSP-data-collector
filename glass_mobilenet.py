@@ -11,11 +11,13 @@ from cv2 import resize
 
 
 class GlassMobilenet(object):
-    def __init__(self, ie, xml_path, bin_path, device='CPU'):
+    def __init__(self, ie, xml_path, bin_path, device='CPU', input_shape=224):
         self.model = IENetwork(xml_path, bin_path)
 
         self._input_blob = next(iter(self.model.inputs))
         self._output_blob = next(iter(self.model.outputs))
+
+        self.input_shape = input_shape
 
         self._ie = ie
         self._exec_model = self._ie.load_network(network=self.model, device_name=device)
@@ -27,7 +29,7 @@ class GlassMobilenet(object):
     def _preprocess(self, image):
         image = np.array(image, dtype=np.float)
         image = image / 255
-        processed_image = np.expand_dims(resize(image, (224, 224)), axis=0)
+        processed_image = np.expand_dims(resize(image, (self.input_shape, self.input_shape)), axis=0)
         processed_image = processed_image.transpose((0, 3, 1, 2))
 
         return processed_image
