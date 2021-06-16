@@ -20,7 +20,7 @@ def resize_input_data(path_to_data):
         os.mkdir(path_to_save)
     dirs = os.listdir(path_to_data)
     for case in dirs:
-        if dir == ".DS_Store":
+        if case == ".DS_Store":
             continue
 
         path_to_train_or_test = os.path.join(path_to_data, case)
@@ -29,6 +29,9 @@ def resize_input_data(path_to_data):
             os.mkdir(path_to_train_or_test_save)
 
         for dir in os.listdir(path_to_train_or_test):
+            if dir == ".DS_Store":
+                continue
+
             path_to_dir = os.path.join(path_to_train_or_test, dir)
             path_to_dir_save = os.path.join(path_to_train_or_test_save, dir)
             if not os.path.exists(path_to_dir_save):
