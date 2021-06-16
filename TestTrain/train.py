@@ -38,9 +38,9 @@ valid_data = gluon.data.DataLoader(
     mnist_valid.transform_first(transformer),
     batch_size=batch_size, num_workers=4)
 
-net = MobileNetV3(input_shape=(3, 28, 28), num_classes=NUM_CLASSES, mode="small")
+net = MobileNetV3(input_shape=(3, 28, 28), classes=NUM_CLASSES, mode="small")
 net.initialize(init=init.Xavier(), ctx=npx.gpu(0))
-# net.hybridize()
+net.hybridize()
 softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
 trainer = gluon.Trainer(net.collect_params(), 'adam', {'learning_rate': 0.001})
 
@@ -53,6 +53,7 @@ for epoch in range(10):
     for data, label in train_data:
         # forward + backward
         data = data.copyto(mx.gpu(0)).as_nd_ndarray()
+        data *= 255
         label = label.copyto(mx.gpu(0)).as_nd_ndarray()
         with autograd.record():
             output = net(data)
@@ -66,12 +67,13 @@ for epoch in range(10):
     # calculate validation accuracy
     for data, label in valid_data:
         data = data.copyto(mx.gpu(0)).as_nd_ndarray()
+        data *= 255
         label = label.copyto(mx.gpu(0)).as_nd_ndarray()
         valid_acc += acc(net(data), label)
     print("Epoch %d: loss %.3f, train acc %.3f, test acc %.3f, in %.1f sec" % (
         epoch, train_loss / len(train_data), train_acc / len(train_data),
         valid_acc / len(valid_data), time.time() - tic))
-    net.save_parameters("/content/drive/MyDrive/Colab Notebooks/net_{}.params".format(epoch))
+    net.export("/content/drive/MyDrive/Colab Notebooks/net_adam_{}".format(epoch), epoch=1)
 
 # sym = get_symbol(input_shape=(3, 224, 224), num_classes=NUM_CLASSES, mode="small")
 #

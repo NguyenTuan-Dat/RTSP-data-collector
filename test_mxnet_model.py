@@ -39,7 +39,7 @@ def process_image(img):
 
     img = cv2.resize(img, (INPUT_SIZE, INPUT_SIZE))
     img = np.transpose(img, (2, 0, 1))
-    # img = np.expand_dims(img, axis=0)
+    img = np.expand_dims(img, axis=0)
     img = img.copyto(mx.cpu(0)).as_nd_ndarray()
 
     logits = model(img)

@@ -7,7 +7,7 @@ from numpy.core.numeric import count_nonzero
 from openvino.inference_engine import IECore, IENetwork
 
 import numpy as np
-from cv2 import resize
+import cv2
 
 
 class FaceDetection(object):
@@ -26,7 +26,7 @@ class FaceDetection(object):
         return output['detection_out']
 
     def _preprocess(self, image):
-        processed_image = np.expand_dims(resize(image, (300, 300)), axis=0)
+        processed_image = np.expand_dims(cv2.resize(image, (300, 300)), axis=0)
         processed_image = processed_image.transpose((0, 3, 1, 2))
         return processed_image
 

@@ -175,6 +175,18 @@ class Flatten(nn.HybridBlock):
         return self.__class__.__name__
 
 
+class Softmax(nn.HybridBlock):
+    def __init__(self, **kwargs):
+        super(Softmax, self).__init__(**kwargs)
+
+    def hybrid_forward(self, F, x):
+        softmax = F.npx.softmax if is_np_array() else F.softmax
+        return softmax(x)
+
+    def __repr__(self):
+        return self.__class__.__name__
+
+
 class MobileBottleNeck(nn.HybridBlock):
     def __init__(self, channels, kernel, stride, exp, se=False, short_cut=True, act="RE"):
         super(MobileBottleNeck, self).__init__()
@@ -299,6 +311,7 @@ class MobileNetV3(nn.HybridBlock):
             self.layers.append(conv_1x1_bn(last_channel, HSwish()))
             self.layers.append(Flatten())
             self.layers.append(nn.Dense(classes))
+            self.layers.append(Softmax())
 
         self._layers = nn.HybridSequential()
         self._layers.add(*self.layers)
