@@ -8,8 +8,37 @@ import numpy as np
 import mxnet as mx
 from fmobilenetv3 import MobileNetV3
 import time
+import os
 
 NUM_CLASSES = 2
+INPUT_SHAPE = 112
+
+
+def resize_input_data(path_to_data):
+    path_to_save = path_to_data + str(INPUT_SHAPE)
+    if not os.path.exists(path_to_save):
+        os.mkdir(path_to_save)
+    dirs = os.listdir(path_to_data)
+    for dir in dirs:
+        if dir == ".DS_Store":
+            continue
+        path_to_dir = os.path.join(path_to_data, dir)
+        path_to_dir_save = os.path.join(path_to_save, dir)
+        if not os.path.exists(path_to_dir_save):
+            os.mkdir(path_to_dir_save)
+
+        image_names = os.listdir(path_to_dir)
+        for image_name in image_names:
+            if image_name == ".DS_Store":
+                continue
+            try:
+                image = cv2.imread(os.path.join(path_to_dir, image_name))
+                image = cv2.resize(image, (INPUT_SHAPE, INPUT_SHAPE))
+                cv2.imwrite(os.path.join(path_to_dir_save, image_name), image)
+            except Exception as ex:
+                print(ex)
+
+    return path_to_save
 
 
 def acc(output, label):
@@ -19,8 +48,10 @@ def acc(output, label):
             label.astype('float32')).mean().asscalar()
 
 
+path_to_data_resized = resize_input_data('/content/RTSP-data-collector/TestTrain/faces-spring-2020-224_mxnet')
+
 mnist_train = mx.gluon.data.vision.datasets.ImageFolderDataset(
-    '/content/RTSP-data-collector/TestTrain/faces-spring-2020-224_mxnet/train')
+    os.path.join(path_to_data_resized, 'train'))
 
 transformer = transforms.Compose([transforms.ToTensor()])
 
@@ -33,7 +64,7 @@ for data, label in train_data:
     break
 
 mnist_valid = mx.gluon.data.vision.datasets.ImageFolderDataset(
-    '/content/RTSP-data-collector/TestTrain/faces-spring-2020-224_mxnet/test')
+    os.path.join(path_to_data_resized, 'test'))
 valid_data = gluon.data.DataLoader(
     mnist_valid.transform_first(transformer),
     batch_size=batch_size, num_workers=4)
@@ -53,7 +84,6 @@ for epoch in range(10):
     for data, label in train_data:
         # forward + backward
         data = data.copyto(mx.gpu(0)).as_nd_ndarray()
-        data *= 255
         label = label.copyto(mx.gpu(0)).as_nd_ndarray()
         with autograd.record():
             output = net(data)
@@ -67,7 +97,6 @@ for epoch in range(10):
     # calculate validation accuracy
     for data, label in valid_data:
         data = data.copyto(mx.gpu(0)).as_nd_ndarray()
-        data *= 255
         label = label.copyto(mx.gpu(0)).as_nd_ndarray()
         valid_acc += acc(net(data), label)
     print("Epoch %d: loss %.3f, train acc %.3f, test acc %.3f, in %.1f sec" % (
