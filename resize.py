@@ -57,25 +57,27 @@ facedetection = FaceDetection(ie, FACEDETECTION_XML_PATH, FACEDETECTION_BIN_PATH
 #                     print(ex)
 
 
-def read_files(path_to_folder):
+def read_files(path_to_folder, path_to_save):
     dirs = os.listdir(path_to_folder)
+    # os.mkdir(path_to_save)
 
     for dir in dirs:
-        if dir == ".DS_Store":
+        if dir == ".DS_Store" or "faces-spring-2020" in dir:
             continue
+        os.mkdir(os.path.join(path_to_save, dir))
         # if os.path.exists(os.path.join(path_to_folder, dir, "Glass")):
         for image in os.listdir(os.path.join(path_to_folder, dir)):
             if image == ".DS_Store":
                 continue
             try:
                 img = cv2.imread(os.path.join(path_to_folder, dir, image))
-                cv2.imshow("aloalo", img)
-                key = cv2.waitKey()
-                if key == ord("s"):
-                    img = cv2.resize(img, (224, 224))
-                    cv2.imwrite(os.path.join(PATH_TO_SAVE, dir + image), img)
+                # cv2.imshow("aloalo", img)
+                # key = cv2.waitKey()
+                # if key == ord("s"):
+                img = cv2.resize(img, (64, 64))
+                cv2.imwrite(os.path.join(path_to_save, dir, image), img)
             except Exception as ex:
                 print(ex)
 
 
-read_files("/Users/ntdat/Downloads/Data_collected_on_insta/instagrams/")
+read_files("/Users/ntdat/Downloads/faces-spring-2020-224x224", "/Users/ntdat/Downloads/faces-spring-2020-64x64")

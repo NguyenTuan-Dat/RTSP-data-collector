@@ -6,6 +6,8 @@ import time
 from openvino.inference_engine import IECore
 from face_detection import FaceDetection
 
+INPUT_SIZE = 224
+
 # path to models
 FACEDETECTION_XML_PATH = "./models/face-detection-retail-0004.xml"
 FACEDETECTION_BIN_PATH = "./models/face-detection-retail-0004.bin"
@@ -21,8 +23,19 @@ def batch_evaluation(pred, labels):
     return list(correct_prediction.numpy())
 
 
-model = model_from_json(open("/Users/ntdat/Downloads/" + 'model.json').read())
-model.load_weights("/Users/ntdat/Downloads/" + 'MobileNetV3_large_1500.h5')
+# model = tf.keras.applications.MobileNetV3Small(
+#     input_shape=(INPUT_SIZE, INPUT_SIZE, 3),
+#     alpha=1.0,
+#     include_top=True,
+#     weights=None,
+#     input_tensor=None,
+#     pooling=None,
+#     classes=2,
+#     classifier_activation="softmax"
+# )
+
+model = model_from_json(open("/Users/ntdat/Downloads/models/" + 'model_{}.json'.format(INPUT_SIZE)).read())
+model.load_weights("/Users/ntdat/Downloads/models/" + 'MobileNetV3_large_6500_224.h5')
 img = cv2.imread("/Users/ntdat/Downloads/faces-spring-2020/Glass/face-2319.png")
 
 
@@ -31,7 +44,7 @@ img = cv2.imread("/Users/ntdat/Downloads/faces-spring-2020/Glass/face-2319.png")
 def process_image(img):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-    img = cv2.resize(img, (224, 224))
+    img = cv2.resize(img, (INPUT_SIZE, INPUT_SIZE))
     img = np.expand_dims(img, axis=0)
 
     logits = model(img, training=False)
@@ -75,9 +88,17 @@ while (video.isOpened()):
 
                 result = process_image(img_cropped)
 
+                result = np.asarray(result)
+
                 print(result)
 
-                cv2.putText(frame, text=str(result), org=(x_min, y_min), fontFace=cv2.INTER_AREA, fontScale=1,
+                if result[0][0] > 0.6:
+                    color = (0, 0, 255)
+                else:
+                    color = (0, 255, 0)
+
+                cv2.putText(frame, text=str(result[0][0]) + "size:" + str(y_max - y_min), org=(x_min, y_min),
+                            fontFace=cv2.INTER_AREA, fontScale=1,
                             color=color)
 
                 cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), color=color)

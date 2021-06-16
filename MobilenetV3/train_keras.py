@@ -5,6 +5,8 @@ import argparse
 import os
 import cv2
 
+INPUT_SIZE = 224
+
 
 def custom_mean_squared_error(y_trues, y_pred):
     y_t = []
@@ -75,11 +77,11 @@ def evaluation(log_dir, datasets, model, summary_writer, loss_fn, lr, step):
 
     img_1 = cv2.imread("/content/face-3179.png")
     img_1 = cv2.cvtColor(img_1, cv2.COLOR_BGR2RGB)
-    img_1 = cv2.resize(img_1, (224, 224))
+    img_1 = cv2.resize(img_1, (INPUT_SIZE, INPUT_SIZE))
 
     img_2 = cv2.imread("/content/face-860.png")
     img_2 = cv2.cvtColor(img_2, cv2.COLOR_BGR2RGB)
-    img_2 = cv2.resize(img_2, (224, 224))
+    img_2 = cv2.resize(img_2, (INPUT_SIZE, INPUT_SIZE))
 
     img = []
     img.append(img_1)
@@ -117,10 +119,10 @@ def train_parse_function(example_proto):
     features = tf.io.parse_single_example(example_proto, features)
     # You can do more image distortion here for training data
     img = tf.image.decode_png(features['image_raw'])
-    img = tf.reshape(img, (224, 224, 3))
+    img = tf.reshape(img, (INPUT_SIZE, INPUT_SIZE, 3))
     h, w, c = img.shape
-    if h != 224 or w != 224 or c != 3:
-        assert 0, "Assert! Input image shape should be (224, 224, 3)!!!"
+    if h != INPUT_SIZE or w != INPUT_SIZE or c != 3:
+        assert 0, "Assert! Input image shape should be (INPUT_SIZE, INPUT_SIZE, 3)!!!"
     img = tf.cast(img, dtype=tf.float32)
     img = tf.image.random_flip_left_right(img)
     label = tf.cast(features['label'], tf.int64)
@@ -134,10 +136,10 @@ def test_parse_function(example_proto):
     features = tf.io.parse_single_example(example_proto, features)
     # You can do more image distortion here for training data
     img = tf.image.decode_jpeg(features['image_raw'])
-    img = tf.reshape(img, (224, 224, 3))
+    img = tf.reshape(img, (INPUT_SIZE, INPUT_SIZE, 3))
     h, w, c = img.shape
-    if h != 224 or w != 224 or c != 3:
-        assert 0, "Assert! Input image shape should be (224, 224, 3)!!!"
+    if h != INPUT_SIZE or w != INPUT_SIZE or c != 3:
+        assert 0, "Assert! Input image shape should be (INPUT_SIZE, INPUT_SIZE, 3)!!!"
     label = tf.cast(features['label'], tf.int64)
     return img, label
 
@@ -187,11 +189,9 @@ if __name__ == '__main__':
     # Instantiate a loss function， customer loss function can insert in here.
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy()
 
-    model = tf.keras.applications.MobileNet(
-        input_shape=(224, 224, 3),
+    model = tf.keras.applications.MobileNetV2(
+        input_shape=(INPUT_SIZE, INPUT_SIZE, 3),
         alpha=1.0,
-        depth_multiplier=1,
-        dropout=0.001,
         include_top=True,
         weights=None,
         input_tensor=None,
@@ -216,48 +216,16 @@ if __name__ == '__main__':
         model.load(args.pretrained_model)
         # model.load_weights(args.pretrained_model)
         print(f'Successful to load pretrained model!')
-
     step = 0
-    for e in range(args.max_epoch):
-        epoch_var.assign(e)
-        lr = learning_rate_fn(epoch_var)
-        optimizer.learning_rate = lr  # update learning rate
-        for i, (images, labels) in enumerate(train_dataset):
-            with tf.GradientTape() as tape:
-                logits = model(images, training=args.train_phase)
-                pred_loss = custom_mean_squared_error(labels, logits)
-                loss_value = pred_loss
 
-            trainable_variables = model.trainable_variables
-            grads = tape.gradient(loss_value, trainable_variables)
-            optimizer.apply_gradients(zip(grads, trainable_variables))
+    callbacks = [
+        tf.keras.callbacks.ModelCheckpoint(
+            filepath=os.path.join(output_dir, f'MobileNetV3_{args.model_type}_{step}.h5'), save_freq=100
+        )
+    ]
 
-            step += 1
-            if step % args.show_info_interval == 0:
-                # calculate accuracy
-                pred = tf.nn.softmax(logits)
-                correct_prediction = tf.cast(tf.equal(tf.argmax(pred, 1), tf.cast(labels, tf.int64)), tf.float32)
-                Accuracy = tf.reduce_mean(correct_prediction)
-                print(f'epoch {e}, lr {lr}, total_step {step}, loss {loss_value}, Accuracy {Accuracy}')
-                with open(os.path.join(log_dir, 'result.txt'), 'at') as f:
-                    f.write('%d\t%2.4f\t%2.4f\t%2.4f\n' % (step, lr, loss_value, Accuracy))
+    model.fit(train_dataset=train_dataset, epochs=10, callbacks=callbacks, validation_data=test_dataset)
 
-                with summary_writer.as_default():
-                    tf.summary.scalar('train/train_loss', loss_value, step=step)
-                    tf.summary.scalar('train/train_Accuracy', Accuracy, step=step)
-
-            if step % args.ckpt_interval == 0:
-                # ckpt_path = os.path.join(args.ckpt_path, f'./checkpoints/MobileNetV3_{args.model_type}_{step}')
-                # model.save_weights(ckpt_path, save_format='tf')
-                ckpt_path = os.path.join(output_dir, f'MobileNetV3_{args.model_type}_{step}.h5')
-                model.save(ckpt_path)
-                model_json = model.to_json()
-                open(os.path.join(output_dir, 'model.json'), 'w').write(model_json)
-
-            if step % args.validate_interval == 0:
-                evaluation(log_dir, test_dataset, model, summary_writer, loss_fn, lr, step)
-
-    # save finnal parameters
     ckpt_path = os.path.join(output_dir, f'MobileNetV3_final.h5')
     tf.saved_model.save(model, os.path.join(output_dir, f'MobileNetV3_final'))
     # final test

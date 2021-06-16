@@ -3,27 +3,19 @@ import tensorflow as tf
 import keras2onnx
 import onnxruntime
 from mobilenetv3 import MobileNetV3
+from tensorflow.keras.models import model_from_json
 
-model = tf.keras.applications.MobileNet(
-    input_shape=(224, 224, 3),
-    alpha=1.0,
-    depth_multiplier=1,
-    dropout=0.001,
-    include_top=True,
-    weights=None,
-    input_tensor=None,
-    pooling=None,
-    classes=2,
-    classifier_activation="softmax"
-)
-model.load_weights("/Users/ntdat/Downloads/MobileNetV3_large_4000.h5")
+INPUT_SIZE = 224
 
-for layer in model.layers:
-    print(layer.get_weights())
+model = model_from_json(open("/Users/ntdat/Downloads/models/" + 'model_{}.json'.format(INPUT_SIZE)).read())
+model.load_weights("/Users/ntdat/Downloads/models/MobileNetV3_large_6500_224.h5")
+
+# for layer in model.layers:
+#     print(layer.get_weights())
 
 # convert to onnx model
-# onnx_model = keras2onnx.convert_keras(model, model.name)
-#
-# temp_model_file = '/Volumes/JIOOUM/glass_tf_4000.onnx'
-# keras2onnx.save_model(onnx_model, temp_model_file)
-# sess = onnxruntime.InferenceSession(temp_model_file)
+onnx_model = keras2onnx.convert_keras(model, model.name)
+
+temp_model_file = '/Users/ntdat/Downloads/glass_large_6500_224.onnx'
+keras2onnx.save_model(onnx_model, temp_model_file)
+sess = onnxruntime.InferenceSession(temp_model_file)

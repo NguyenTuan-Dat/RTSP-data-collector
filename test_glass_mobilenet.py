@@ -15,8 +15,8 @@ args = parser.parse_args()
 FACEDETECTION_XML_PATH = "./models/face-detection-retail-0004.xml"
 FACEDETECTION_BIN_PATH = "./models/face-detection-retail-0004.bin"
 
-GLASS_MOBILENET_XML_PATH = "/Volumes/JIOOUM/glass_tf_4000.xml"
-GLASS_MOBILENET_BIN_PATH = "/Volumes/JIOOUM/glass_tf_4000.bin"
+GLASS_MOBILENET_XML_PATH = "/Volumes/JIOOUM/glass_large_6500_224.xml"
+GLASS_MOBILENET_BIN_PATH = "/Volumes/JIOOUM/glass_large_6500_224.bin"
 
 ie = IECore()
 
@@ -26,31 +26,6 @@ facedetection = FaceDetection(ie, FACEDETECTION_XML_PATH, FACEDETECTION_BIN_PATH
 glass_detector = GlassMobilenet(ie, GLASS_MOBILENET_XML_PATH, GLASS_MOBILENET_BIN_PATH)
 
 color = (0, 255, 0)
-
-
-def draw_facial_landmasks(landmasks, face_local, img):
-    global color
-    x_min, y_min, x_max, y_max = face_local
-    x_scales = landmasks[0][0::2]
-    y_scales = landmasks[0][1::2]
-    points = []
-    for idx in range(len(x_scales)):
-        x_scale = x_scales[idx]
-        y_scale = y_scales[idx]
-
-        x = x_min + int(x_scale * (x_max - x_min))
-        y = y_min + int(y_scale * (y_max - y_min))
-
-        if idx >= 20 and idx <= 32 or idx == 4:
-            points.append((x, y))
-
-        cv2.circle(img, (x, y), radius=1, color=color)
-        cv2.putText(img, str(idx), (x, y), cv2.FONT_HERSHEY_PLAIN, fontScale=1, color=color)
-
-    points.append(points[0])
-
-    cv2.fillPoly(img, np.int32(np.array([points])), color=(0, 0, 0), lineType=cv2.LINE_AA)
-
 
 if args.cam:
     # init video
@@ -91,7 +66,14 @@ if args.cam:
 
                     result = glass_detector.detect(img_cropped)
 
+                    result = result['predictions'][0][0]
+
                     print(result)
+
+                    if result > 0.6:
+                        color = (0, 0, 255)
+                    else:
+                        color = (0, 255, 0)
 
                     cv2.putText(frame, text=str(result), org=(x_min, y_min), fontFace=cv2.INTER_AREA, fontScale=1,
                                 color=color)

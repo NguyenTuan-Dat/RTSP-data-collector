@@ -77,7 +77,7 @@ def read_files(path_to_dir):
     return images, labels
 
 
-PATH_TO_DIR = "/Users/ntdat/Downloads/faces-spring-2020-224x224"
+PATH_TO_DIR = "/Users/ntdat/Downloads/faces-spring-2020-64x64"
 images, labels = read_files(PATH_TO_DIR)
 convert_to(PATH_TO_DIR, images[:7000], labels[:7000], "faces-spring-2020-train")
 convert_to(PATH_TO_DIR, images[7000:], labels[7000:], "faces-spring-2020-test")

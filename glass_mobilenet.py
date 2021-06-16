@@ -25,9 +25,6 @@ class GlassMobilenet(object):
         return output
 
     def _preprocess(self, image):
-        image.astype(np.float)
-        image = image - 127.5
-        img_cropped = np.multiply(image, 0.0078125)
         processed_image = np.expand_dims(resize(image, (224, 224)), axis=0)
         # processed_image = processed_image.transpose((0, 3, 1, 2))
         return processed_image
