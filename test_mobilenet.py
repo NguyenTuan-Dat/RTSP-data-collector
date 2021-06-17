@@ -9,7 +9,7 @@ import os
 import shutil
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--model", "-m", choices=['mobilenetv3', 'efficientnet'])
+parser.add_argument("--model", "-m", choices=['fmobilenetv3', 'mobilenetv3', 'efficientnet'])
 parser.add_argument("--cam", "-c", action="store_true")
 parser.add_argument("--model_path", "-p", type=str, default="./models/glass_mask_mxnet")
 args = parser.parse_args()
@@ -77,8 +77,10 @@ if args.cam:
 
                     # img_cropped = cv2.cvtColor(img_cropped, cv2.COLOR_BGR2RGB)
 
-                    if args.model == 'mobilenetv3':
+                    if args.model == 'fmobilenetv3':
                         result = glass_detector.detect(img_cropped)['softmax0_softmax0'][0]
+                    elif args.model == 'mobilenetv3':
+                        result = glass_detector.detect(img_cropped)['mobilenetv30_flatten0_flatten0'][0]
                     else:
                         result = glass_detector.detect(img_cropped)['efficientnet0_output_flatten0_flatten0'][0]
                         print(result)
