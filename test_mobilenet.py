@@ -14,7 +14,7 @@ parser.add_argument("--cam", "-c", action="store_true")
 parser.add_argument("--model_path", "-p", type=str, default="./models/glass_mask_mxnet")
 args = parser.parse_args()
 
-INPUT_SHAPE = 112
+INPUT_SHAPE = 48
 
 # path to models
 FACEDETECTION_XML_PATH = "./models/face-detection-retail-0004.xml"

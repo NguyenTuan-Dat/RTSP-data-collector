@@ -1,3 +1,4 @@
+from mxnet import is_np_array
 from mxnet.gluon.block import HybridBlock
 from mxnet.gluon import nn
 from math import ceil

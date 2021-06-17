@@ -11,52 +11,54 @@ import time
 import os
 import argparse
 from efficientnet import get_efficientnet_lite
+import mobilenetv3
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-nn", type=str, default='mobilenetv3', choices=['mobilenetv3', 'efficientnet'])
+parser.add_argument("-nn", type=str, default='mobilenetv3', choices=['mobilenetv3', 'fmobilenetv3', 'efficientnet'])
 parser.add_argument("--input_shape", type=int, default=224)
 parser.add_argument("--num_classes", type=int, default=3)
+parser.add_argument("--num_epoch", type=int, default=10)
 args = parser.parse_args()
 
 NUM_CLASSES = args.num_classes
 INPUT_SHAPE = args.input_shape
 
 
-def resize_input_data(path_to_data):
-    path_to_save = path_to_data + str(INPUT_SHAPE)
-    if not os.path.exists(path_to_save):
-        os.mkdir(path_to_save)
-    dirs = os.listdir(path_to_data)
-    for case in dirs:
-        if case == ".DS_Store":
-            continue
-
-        path_to_train_or_test = os.path.join(path_to_data, case)
-        path_to_train_or_test_save = os.path.join(path_to_save, case)
-        if not os.path.exists(path_to_train_or_test_save):
-            os.mkdir(path_to_train_or_test_save)
-
-        for dir in os.listdir(path_to_train_or_test):
-            if dir == ".DS_Store":
-                continue
-
-            path_to_dir = os.path.join(path_to_train_or_test, dir)
-            path_to_dir_save = os.path.join(path_to_train_or_test_save, dir)
-            if not os.path.exists(path_to_dir_save):
-                os.mkdir(path_to_dir_save)
-
-            image_names = os.listdir(path_to_dir)
-            for image_name in image_names:
-                if image_name == ".DS_Store":
-                    continue
-                try:
-                    image = cv2.imread(os.path.join(path_to_dir, image_name))
-                    image = cv2.resize(image, (INPUT_SHAPE, INPUT_SHAPE))
-                    cv2.imwrite(os.path.join(path_to_dir_save, image_name), image)
-                except Exception as ex:
-                    print(ex)
-
-    return path_to_save
+# def resize_input_data(path_to_data):
+#     path_to_save = path_to_data + str(INPUT_SHAPE)
+#     if not os.path.exists(path_to_save):
+#         os.mkdir(path_to_save)
+#     dirs = os.listdir(path_to_data)
+#     for case in dirs:
+#         if case == ".DS_Store":
+#             continue
+#
+#         path_to_train_or_test = os.path.join(path_to_data, case)
+#         path_to_train_or_test_save = os.path.join(path_to_save, case)
+#         if not os.path.exists(path_to_train_or_test_save):
+#             os.mkdir(path_to_train_or_test_save)
+#
+#         for dir in os.listdir(path_to_train_or_test):
+#             if dir == ".DS_Store":
+#                 continue
+#
+#             path_to_dir = os.path.join(path_to_train_or_test, dir)
+#             path_to_dir_save = os.path.join(path_to_train_or_test_save, dir)
+#             if not os.path.exists(path_to_dir_save):
+#                 os.mkdir(path_to_dir_save)
+#
+#             image_names = os.listdir(path_to_dir)
+#             for image_name in image_names:
+#                 if image_name == ".DS_Store":
+#                     continue
+#                 try:
+#                     image = cv2.imread(os.path.join(path_to_dir, image_name))
+#                     image = cv2.resize(image, (INPUT_SHAPE, INPUT_SHAPE))
+#                     cv2.imwrite(os.path.join(path_to_dir_save, image_name), image)
+#                 except Exception as ex:
+#                     print(ex)
+#
+#     return path_to_save
 
 
 def acc(output, label):
@@ -66,12 +68,12 @@ def acc(output, label):
             label.astype('float32')).mean().asscalar()
 
 
-path_to_data_resized = resize_input_data('/content/faces-spring-2020-224_mxnet')
+path_to_data_resized = '/content/faces-spring-2020-224_mxnet'
 
 mnist_train = mx.gluon.data.vision.datasets.ImageFolderDataset(
     os.path.join(path_to_data_resized, 'train'))
 
-transformer = transforms.Compose([transforms.ToTensor()])
+transformer = transforms.Compose([transforms.Resize(INPUT_SHAPE), transforms.ToTensor()])
 
 batch_size = 256
 train_data = gluon.data.DataLoader(
@@ -89,8 +91,10 @@ valid_data = gluon.data.DataLoader(
 net = None
 
 # get neural network
-if args.nn == 'mobilenetv3':
+if args.nn == 'fmobilenetv3':
     net = MobileNetV3(classes=NUM_CLASSES, mode="small")
+elif args.nn == 'mobilenetv3':
+    net = mobilenetv3.MobileNetV3(version='small', num_classes=NUM_CLASSES)
 elif args.nn == 'efficientnet':
     net, input_resolution = get_efficientnet_lite('efficientnet-lite', NUM_CLASSES)
 
@@ -99,7 +103,7 @@ net.hybridize()
 softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
 trainer = gluon.Trainer(net.collect_params(), 'adam', {'learning_rate': 0.001})
 
-for epoch in range(10):
+for epoch in range(args.num_epoch):
     train_loss, train_acc, valid_acc = 0., 0., 0.
     tic = time.time()
     for data, label in train_data:
