@@ -9,9 +9,17 @@ import mxnet as mx
 from fmobilenetv3 import MobileNetV3
 import time
 import os
+import argparse
+from efficientnet import get_efficientnet_lite
 
-NUM_CLASSES = 3
-INPUT_SHAPE = 112
+parser = argparse.ArgumentParser()
+parser.add_argument("-nn", type=str, default='mobilenetv3', choices=['mobilenetv3', 'efficientnet'])
+parser.add_argument("--input_shape", type=int, default=224)
+parser.add_argument("--num_classes", type=int, default=3)
+args = parser.parse_args()
+
+NUM_CLASSES = args.num_classes
+INPUT_SHAPE = args.input_shape
 
 
 def resize_input_data(path_to_data):
@@ -78,8 +86,14 @@ mnist_valid = mx.gluon.data.vision.datasets.ImageFolderDataset(
 valid_data = gluon.data.DataLoader(
     mnist_valid.transform_first(transformer),
     batch_size=batch_size, num_workers=4)
+net = None
 
-net = MobileNetV3(input_shape=(3, 28, 28), classes=NUM_CLASSES, mode="small")
+# get neural network
+if args.nn == 'mobilenetv3':
+    net = MobileNetV3(input_shape=(3, 28, 28), classes=NUM_CLASSES, mode="small")
+elif args.nn == 'efficientnet':
+    net, input_resolution = get_efficientnet_lite('efficientnet-lite', NUM_CLASSES)
+
 net.initialize(init=init.Xavier(), ctx=npx.gpu(0))
 net.hybridize()
 softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
@@ -112,7 +126,7 @@ for epoch in range(10):
     print("Epoch %d: loss %.3f, train acc %.3f, test acc %.3f, in %.1f sec" % (
         epoch, train_loss / len(train_data), train_acc / len(train_data),
         valid_acc / len(valid_data), time.time() - tic))
-    net.export("/content/drive/MyDrive/Colab Notebooks/net_adam_{}".format(epoch), epoch=1)
+    net.export("/content/drive/MyDrive/Colab Notebooks/net_adam_{}_{}".format(INPUT_SHAPE, epoch), epoch=1)
 
 # sym = get_symbol(input_shape=(3, 224, 224), num_classes=NUM_CLASSES, mode="small")
 #

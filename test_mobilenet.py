@@ -10,6 +10,7 @@ import shutil
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--cam", "-c", action="store_true")
+parser.add_argument("--model_path", "-m", type=str, default="./models/glass_mask_mxnet")
 args = parser.parse_args()
 
 INPUT_SHAPE = 112
@@ -18,15 +19,15 @@ INPUT_SHAPE = 112
 FACEDETECTION_XML_PATH = "./models/face-detection-retail-0004.xml"
 FACEDETECTION_BIN_PATH = "./models/face-detection-retail-0004.bin"
 
-GLASS_MOBILENET_XML_PATH = "./models/glass_mask_mxnet.xml"
-GLASS_MOBILENET_BIN_PATH = "./models/glass_mask_mxnet.bin"
+GLASS_MOBILENET_XML_PATH = args.model_path + ".xml"
+GLASS_MOBILENET_BIN_PATH = args.model_path + ".bin"
 
 ie = IECore()
 
 # Create FaceDetection model
 facedetection = FaceDetection(ie, FACEDETECTION_XML_PATH, FACEDETECTION_BIN_PATH)
 
-glass_detector = GlassMobilenet(ie, GLASS_MOBILENET_XML_PATH, GLASS_MOBILENET_BIN_PATH, INPUT_SHAPE)
+glass_detector = GlassMobilenet(ie, GLASS_MOBILENET_XML_PATH, GLASS_MOBILENET_BIN_PATH, input_shape=INPUT_SHAPE)
 
 color = (0, 255, 0)
 
@@ -36,6 +37,8 @@ def softmax(x):
     return f_x
 
 
+total_time = 0.0
+count_time = 0
 if args.cam:
     # init video
     video = cv2.VideoCapture(0)
@@ -71,27 +74,30 @@ if args.cam:
                     # crop face
                     img_cropped = frame[y_min:y_max, x_min:x_max]
 
-                    img_cropped = cv2.cvtColor(img_cropped, cv2.COLOR_BGR2RGB)
+                    # img_cropped = cv2.cvtColor(img_cropped, cv2.COLOR_BGR2RGB)
 
                     result = glass_detector.detect(img_cropped)['softmax0_softmax0'][0]
 
-                    result = np.argmax(np.asarray(result))
+                    argmax = np.argmax(result)
 
                     color = [0, 0, 0]
-                    color[result] = 255
+                    color[argmax] = 255
                     color = tuple(color)
 
-                    # cv2.putText(frame, text=str(result[0]), org=(x_min, y_min),
-                    #             fontFace=cv2.INTER_AREA,
-                    #             fontScale=1,
-                    #             color=color)
+                    cv2.putText(frame, text=str(result[argmax]), org=(x_min, y_min),
+                                fontFace=cv2.INTER_AREA,
+                                fontScale=1,
+                                color=color)
 
                     cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), color=color)
 
                 except Exception as ex:
                     print(ex)
 
-                print("FPS: {}".format(1 / (time.time() - t)), end="\r")
+                total_time += time.time() - t
+                count_time += 1
+
+                print("FPS: {}".format(count_time / total_time), end="\r")
 
         cv2.imshow("AloAlo", frame)
         cv2.waitKey(1)
