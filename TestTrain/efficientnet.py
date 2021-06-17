@@ -41,6 +41,18 @@ class MBConv(nn.HybridBlock):
         return out
 
 
+class Softmax(nn.HybridBlock):
+    def __init__(self, **kwargs):
+        super(Softmax, self).__init__(**kwargs)
+
+    def hybrid_forward(self, F, x):
+        softmax = F.npx.softmax if is_np_array() else F.softmax
+        return softmax(x)
+
+    def __repr__(self):
+        return self.__class__.__name__
+
+
 class EfficientNet(nn.HybridBlock):
     r"""
     Parameters
@@ -105,7 +117,8 @@ class EfficientNet(nn.HybridBlock):
             with self.output.name_scope():
                 self.output.add(
                     nn.Conv2D(classes, 1, use_bias=False, prefix='pred_'),
-                    nn.Flatten()
+                    nn.Flatten(),
+                    Softmax()
                 )
 
     def hybrid_forward(self, F, x):

@@ -90,7 +90,7 @@ net = None
 
 # get neural network
 if args.nn == 'mobilenetv3':
-    net = MobileNetV3(input_shape=(3, 28, 28), classes=NUM_CLASSES, mode="small")
+    net = MobileNetV3(classes=NUM_CLASSES, mode="small")
 elif args.nn == 'efficientnet':
     net, input_resolution = get_efficientnet_lite('efficientnet-lite', NUM_CLASSES)
 
@@ -98,9 +98,6 @@ net.initialize(init=init.Xavier(), ctx=npx.gpu(0))
 net.hybridize()
 softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
 trainer = gluon.Trainer(net.collect_params(), 'adam', {'learning_rate': 0.001})
-
-print(train_data)
-print(trainer)
 
 for epoch in range(10):
     train_loss, train_acc, valid_acc = 0., 0., 0.
@@ -126,20 +123,4 @@ for epoch in range(10):
     print("Epoch %d: loss %.3f, train acc %.3f, test acc %.3f, in %.1f sec" % (
         epoch, train_loss / len(train_data), train_acc / len(train_data),
         valid_acc / len(valid_data), time.time() - tic))
-    net.export("/content/drive/MyDrive/Colab Notebooks/net_adam_{}_{}".format(INPUT_SHAPE, epoch), epoch=1)
-
-# sym = get_symbol(input_shape=(3, 224, 224), num_classes=NUM_CLASSES, mode="small")
-#
-# image = cv2.imread("/Users/ntdat/Downloads/faces-spring-2020-224x224/Glass/2img_44.jpg")
-# image = cv2.resize(image, (224, 224))
-# image = np.transpose(image, (2, 0, 1))
-#
-# model = mx.mod.Module(
-#     context=[mx.cpu()],
-#     symbol=sym,
-#     label_names=['data']
-# )
-#
-# model.bind(for_training=False, data_shapes=data_iter.provide_data)
-#
-# print(model.forward(image))
+    net.export("/content/drive/MyDrive/Colab Notebooks/{}_{}_{}".format(args.nn, INPUT_SHAPE, epoch), epoch=1)

@@ -237,7 +237,7 @@ class MobileBottleNeck(nn.HybridBlock):
 
 
 class MobileNetV3(nn.HybridBlock):
-    def __init__(self, input_shape=(3, 224, 224), classes=1000, width_mult=1.0, mode="large", **kwargs):
+    def __init__(self, classes=1000, width_mult=1.0, mode="large", **kwargs):
         super(MobileNetV3, self).__init__()
         assert mode in ["large", "small"]
         # assert input_size%32 == 0
@@ -245,8 +245,6 @@ class MobileNetV3(nn.HybridBlock):
         setting = []
         last_channel = 1280
         input_channel = 16
-
-        c, h, w = input_shape
 
         if mode == "large":
             setting = [
