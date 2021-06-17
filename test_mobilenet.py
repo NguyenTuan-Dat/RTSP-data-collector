@@ -9,7 +9,7 @@ import os
 import shutil
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--model", "-m", choices=['fmobilenetv3', 'mobilenetv3', 'efficientnet'])
+parser.add_argument("--model", "-m", choices=['fmobilenetv3', 'mobilenetv3', 'base_unet'])
 parser.add_argument("--cam", "-c", action="store_true")
 parser.add_argument("--model_path", "-p", type=str, default="./models/glass_mask_mxnet")
 args = parser.parse_args()
