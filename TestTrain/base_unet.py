@@ -22,24 +22,16 @@ class BaseUnet(nn.HybridSequential):
 
         self.layers = nn.HybridSequential()
 
-        self.layers.add(nn.Conv2D(64, kernel_size=3, strides=1, use_bias=False))
-        self.layers.add(nn.Conv2D(64, kernel_size=3, strides=1, use_bias=False))
-        self.layers.add(nn.MaxPool2D(pool_size=2))
-        self.layers.add(nn.Conv2D(128, kernel_size=3, strides=1, use_bias=False))
-        self.layers.add(nn.Conv2D(128, kernel_size=3, strides=1, use_bias=False))
-        self.layers.add(nn.MaxPool2D(pool_size=2))
-        self.layers.add(nn.Conv2D(256, kernel_size=3, strides=1, use_bias=False))
-        self.layers.add(nn.Conv2D(256, kernel_size=3, strides=1, use_bias=False))
-        self.layers.add(nn.MaxPool2D(pool_size=2))
-        self.layers.add(nn.Conv2D(256, kernel_size=3, strides=1, use_bias=False))
-        self.layers.add(nn.Conv2D(256, kernel_size=3, strides=1, use_bias=False))
-        self.layers.add(nn.MaxPool2D(pool_size=2))
-        self.layers.add(nn.Conv2D(512, kernel_size=3, strides=1, use_bias=False))
-        self.layers.add(nn.Conv2D(512, kernel_size=3, strides=1, use_bias=False))
+        self.layers.add(nn.Conv2D(64, kernel_size=1))
+        self.layers.add(nn.Conv2D(128, kernel_size=1))
+        self.layers.add(nn.Conv2D(256, kernel_size=1))
+        self.layers.add(nn.Conv2D(512, kernel_size=1))
+        self.layers.add(nn.AvgPool2D(pool_size=7))
         self.layers.add(nn.BatchNorm())
+        self.layers.add(nn.Conv2D(128, kernel_size=1))
         self.layers.add(nn.Conv2D(self.num_classes, kernel_size=1))
         self.layers.add(nn.Flatten())
         self.layers.add(Softmax())
 
-    def hybrid_forward(self, F, x):
+    def hybrid_forward(self, F, x, *args, **kwargs):
         return self.layers(x)

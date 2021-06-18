@@ -82,7 +82,7 @@ if args.cam:
                     elif args.model == 'mobilenetv3':
                         result = glass_detector.detect(img_cropped)['mobilenetv30_flatten0_flatten0'][0]
                     else:
-                        result = glass_detector.detect(img_cropped)['efficientnet0_output_flatten0_flatten0'][0]
+                        result = glass_detector.detect(img_cropped)['mobilenetv20_output_flatten0_flatten0'][0]
                         print(result)
 
                     argmax = np.argmax(result)

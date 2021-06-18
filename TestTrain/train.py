@@ -12,9 +12,12 @@ import os
 import argparse
 import mobilenetv3
 from base_unet import BaseUnet
+import gluoncv
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-nn", type=str, default='mobilenetv3', choices=['mobilenetv3', 'fmobilenetv3', 'base_unet'])
+parser.add_argument("-nn", type=str, default='mobilenetv3',
+                    choices=['mobilenetv3', 'fmobilenetv3', 'gmobilenetv3', 'base_unet', 'mobilenetv2_50',
+                             "mobilenetv2_25", 'alexnet'])
 parser.add_argument("--input_shape", type=int, default=224)
 parser.add_argument("--num_classes", type=int, default=3)
 parser.add_argument("--num_epoch", type=int, default=10)
@@ -22,6 +25,9 @@ args = parser.parse_args()
 
 NUM_CLASSES = args.num_classes
 INPUT_SHAPE = args.input_shape
+
+if not os.path.exists("/content/drive/MyDrive/Colab Notebooks/HumanFacesRecognition/Models_{}".format(args.nn)):
+    os.mkdir("/content/drive/MyDrive/Colab Notebooks/HumanFacesRecognition/Models_{}".format(args.nn))
 
 
 def acc(output, label):
@@ -58,8 +64,17 @@ if args.nn == 'fmobilenetv3':
     net = MobileNetV3(classes=NUM_CLASSES, mode="small")
 elif args.nn == 'mobilenetv3':
     net = mobilenetv3.MobileNetV3(version='small', num_classes=NUM_CLASSES)
+elif args.nn == 'gmobilenetv3':
+    kwargs = {'ctx': mx.gpu(), 'pretrained': True, 'classes': 3, 'last_gamma': True}
+    net = gluoncv.model_zoo.get_model("mobilenetv3_small", **kwargs)
 elif args.nn == 'base_unet':
     net = BaseUnet(num_classes=NUM_CLASSES)
+elif args.nn == 'mobilenetv2_50':
+    net = gluon.model_zoo.vision.MobileNetV2(classes=NUM_CLASSES, multiplier=0.5)
+elif args.nn == 'mobilenetv2_25':
+    net = gluon.model_zoo.vision.MobileNetV2(classes=NUM_CLASSES, multiplier=0.25)
+elif args.nn == 'alexnet':
+    net = gluon.model_zoo.vision.AlexNet(classes=3)
 
 net.initialize(init=init.Xavier(), ctx=npx.gpu(0))
 net.hybridize()
@@ -90,4 +105,7 @@ for epoch in range(args.num_epoch):
     print("Epoch %d: loss %.3f, train acc %.3f, test acc %.3f, in %.1f sec" % (
         epoch, train_loss / len(train_data), train_acc / len(train_data),
         valid_acc / len(valid_data), time.time() - tic))
-    net.export("/content/drive/MyDrive/Colab Notebooks/{}_{}_{}".format(args.nn, INPUT_SHAPE, epoch), epoch=1)
+    net.export(
+        "/content/drive/MyDrive/Colab Notebooks/HumanFacesRecognition/Models_{}/{}_{}_{}".format(args.nn, args.nn,
+                                                                                                 INPUT_SHAPE, epoch),
+        epoch=1)
