@@ -1,6 +1,8 @@
+from mxnet.gluon import nn
+
 from fmobilenetv3 import get_symbol
 from mxnet.gluon.data.vision import datasets, transforms
-from mxnet import gluon, autograd, init, np, npx
+from mxnet import gluon, autograd, init, np, npx, is_np_array
 from IPython import display
 import matplotlib.pyplot as plt
 import cv2
@@ -28,6 +30,18 @@ INPUT_SHAPE = args.input_shape
 
 if not os.path.exists("/content/drive/MyDrive/Colab Notebooks/HumanFacesRecognition/Models_{}".format(args.nn)):
     os.mkdir("/content/drive/MyDrive/Colab Notebooks/HumanFacesRecognition/Models_{}".format(args.nn))
+
+
+class Softmax(nn.HybridBlock):
+    def __init__(self, **kwargs):
+        super(Softmax, self).__init__(**kwargs)
+
+    def hybrid_forward(self, F, x):
+        softmax = F.npx.softmax if is_np_array() else F.softmax
+        return softmax(x)
+
+    def __repr__(self):
+        return self.__class__.__name__
 
 
 def acc(output, label):
@@ -71,8 +85,10 @@ elif args.nn == 'base_unet':
     net = BaseUnet(num_classes=NUM_CLASSES)
 elif args.nn == 'mobilenetv2_50':
     net = gluon.model_zoo.vision.MobileNetV2(classes=NUM_CLASSES, multiplier=0.5)
+    net.output.add(Softmax())
 elif args.nn == 'mobilenetv2_25':
     net = gluon.model_zoo.vision.MobileNetV2(classes=NUM_CLASSES, multiplier=0.25)
+    net.output.add(Softmax())
 elif args.nn == 'alexnet':
     net = gluon.model_zoo.vision.AlexNet(classes=3)
 
