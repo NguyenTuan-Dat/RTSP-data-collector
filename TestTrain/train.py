@@ -1,5 +1,7 @@
 from mxnet.gluon import nn
+from mxnet.gluon.loss import Loss
 
+from TestTrain.CustomMobilenet import MobileNetV2
 from fmobilenetv3 import get_symbol
 from mxnet.gluon.data.vision import datasets, transforms
 from mxnet import gluon, autograd, init, np, npx, is_np_array
@@ -32,6 +34,28 @@ if not os.path.exists("/content/drive/MyDrive/Colab Notebooks/HumanFacesRecognit
     os.mkdir("/content/drive/MyDrive/Colab Notebooks/HumanFacesRecognition/Models_{}".format(args.nn))
 
 
+class CustomLoss(Loss):
+    def __init__(self, num_classes=3, focus_classes=(0, 1, 2), weight=None, batch_axis=0, **kwargs):
+        super(CustomLoss, self).__init__(weight, batch_axis, **kwargs)
+        self.num_classes = num_classes
+        self.focus_classes = np.array(focus_classes)
+
+    def hybrid_forward(self, F, preds, labels):
+        losses = None
+        for idx, pred in enumerate(preds):
+            # loss = F.square(labels[idx] - pred)
+            loss = labels[idx] * F.log(pred + 1e-10)
+            loss = loss.sum()
+            loss = loss if mx.nd.argmax(labels[idx]) != 0 else loss * 2
+            if idx == 0:
+                losses = loss
+            else:
+                losses = mx.nd.concat(losses, loss, dim=0)
+
+        # print("pred," , preds[0], "label,", labels[0], "losses,",losses[0] )
+        return losses
+
+
 class Softmax(nn.HybridBlock):
     def __init__(self, **kwargs):
         super(Softmax, self).__init__(**kwargs)
@@ -48,7 +72,7 @@ def acc(output, label):
     # output: (batch, num_output) float32 ndarray
     # label: (batch, ) int32 ndarray
     return (output.argmax(axis=1) ==
-            label.astype('float32')).mean().asscalar()
+            label.astype("float32")).mean().asscalar()
 
 
 path_to_data_resized = '/content/faces-spring-2020-224_mxnet'
@@ -84,18 +108,20 @@ elif args.nn == 'gmobilenetv3':
 elif args.nn == 'base_unet':
     net = BaseUnet(num_classes=NUM_CLASSES)
 elif args.nn == 'mobilenetv2_50':
-    net = gluon.model_zoo.vision.MobileNetV2(classes=NUM_CLASSES, multiplier=0.5)
+    net = MobileNetV2(classes=NUM_CLASSES, multiplier=0.5)
     net.output.add(Softmax())
 elif args.nn == 'mobilenetv2_25':
     net = gluon.model_zoo.vision.MobileNetV2(classes=NUM_CLASSES, multiplier=0.25)
     net.output.add(Softmax())
 elif args.nn == 'alexnet':
-    net = gluon.model_zoo.vision.AlexNet(classes=3)
+    net = gluon.model_zoo.vision.AlexNet(classes=NUM_CLASSES)
 
 net.initialize(init=init.Xavier(), ctx=npx.gpu(0))
 net.hybridize()
-softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
-trainer = gluon.Trainer(net.collect_params(), 'adam', {'learning_rate': 0.001})
+softmax_cross_entropy = mx.gluon.loss.SoftmaxCrossEntropyLoss()
+# sigmoid_cross_entropy = mx.gluon.loss.L2Loss()
+custom_loss = CustomLoss(focus_classes=(0,))
+trainer = gluon.Trainer(net.collect_params(), 'adam', {'learning_rate': 0.0005})
 
 for epoch in range(args.num_epoch):
     train_loss, train_acc, valid_acc = 0., 0., 0.
@@ -103,11 +129,19 @@ for epoch in range(args.num_epoch):
     for data, label in train_data:
         # forward + backward
         data = data.copyto(mx.gpu(0)).as_nd_ndarray()
+        label_onehot = mx.nd.one_hot(label, 3)
+        label_onehot = label_onehot.copyto(mx.gpu(0)).as_nd_ndarray()
         label = label.copyto(mx.gpu(0)).as_nd_ndarray()
         with autograd.record():
             output = net(data)
-            loss = softmax_cross_entropy(output, label)
+            loss_softmax_ce = softmax_cross_entropy(output, label)
+
+            loss = loss_softmax_ce
+
+            # loss_custom = custom_loss(output, label_onehot)
+            # loss = loss_softmax_ce.mean() + 0.2 * loss_custom.mean()
         loss.backward()
+
         # update parameters
         trainer.step(batch_size)
         # calculate training metrics
@@ -116,6 +150,7 @@ for epoch in range(args.num_epoch):
     # calculate validation accuracy
     for data, label in valid_data:
         data = data.copyto(mx.gpu(0)).as_nd_ndarray()
+        # label = mx.nd.one_hot(label, 3)
         label = label.copyto(mx.gpu(0)).as_nd_ndarray()
         valid_acc += acc(net(data), label)
     print("Epoch %d: loss %.3f, train acc %.3f, test acc %.3f, in %.1f sec" % (

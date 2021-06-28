@@ -1,6 +1,8 @@
+from PIL.ImageFont import ImageFont
 from openvino.inference_engine import IECore
 from face_detection import FaceDetection
 from glass_mobilenet import GlassMobilenet
+from HeadposeEstimation import HeadposeEstimation
 import cv2
 import numpy as np
 import argparse
@@ -23,6 +25,9 @@ FACEDETECTION_BIN_PATH = "./models/face-detection-retail-0004.bin"
 GLASS_MOBILENET_XML_PATH = args.model_path + ".xml"
 GLASS_MOBILENET_BIN_PATH = args.model_path + ".bin"
 
+HEADPOSE_XML_PATH = "./models/head-pose-estimation-adas-0001.xml"
+HEADPOSE_BIN_PATH = "./models/head-pose-estimation-adas-0001.bin"
+
 ie = IECore()
 
 # Create FaceDetection model
@@ -30,7 +35,36 @@ facedetection = FaceDetection(ie, FACEDETECTION_XML_PATH, FACEDETECTION_BIN_PATH
 
 glass_detector = GlassMobilenet(ie, GLASS_MOBILENET_XML_PATH, GLASS_MOBILENET_BIN_PATH, input_shape=INPUT_SHAPE)
 
+headpose = HeadposeEstimation(ie, HEADPOSE_XML_PATH, HEADPOSE_BIN_PATH)
+
 color = (0, 255, 0)
+
+
+def run_head_pose(face_frame):
+    rotate_angle = 0
+    yaw_angle = 0
+    # run nn
+    yaw_angle, pitch_angle, rotate_angle = headpose.detect(face_frame)
+    return (True, rotate_angle, yaw_angle)
+
+
+def correction(frame, center=None, angle=None, invert=False):
+    angle = int(angle)
+    h, w = frame.shape[:2]
+    if center is None:
+        center = (h // 2, w // 2)
+    mat = cv2.getRotationMatrix2D(center, angle, 1)
+    affine = cv2.invertAffineTransform(mat).astype("float32")
+    corr = cv2.warpAffine(
+        frame,
+        mat,
+        (w, h),
+        flags=cv2.INTER_CUBIC,
+        borderMode=cv2.BORDER_CONSTANT,
+    )
+    if invert:
+        return corr, affine
+    return corr
 
 
 def softmax(x):
@@ -77,6 +111,10 @@ if args.cam:
 
                     # img_cropped = cv2.cvtColor(img_cropped, cv2.COLOR_BGR2RGB)
 
+                    (status, rotate_angle, yaw_angle) = run_head_pose(img_cropped)
+
+                    img_cropped = correction(img_cropped, angle=rotate_angle)
+
                     if args.model == 'fmobilenetv3':
                         result = glass_detector.detect(img_cropped)['softmax0_softmax0'][0]
                     elif args.model == 'mobilenetv3':
@@ -90,8 +128,7 @@ if args.cam:
                     color = [0, 0, 0]
                     color[argmax] = 255
                     color = tuple(color)
-
-                    cv2.putText(frame, text=str(result[argmax]), org=(x_min, y_min),
+                    cv2.putText(frame, text="Đạt" + str(result[argmax]), org=(x_min, y_min),
                                 fontFace=cv2.INTER_AREA,
                                 fontScale=1,
                                 color=color)

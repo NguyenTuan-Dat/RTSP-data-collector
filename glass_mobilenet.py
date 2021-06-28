@@ -27,12 +27,15 @@ class GlassMobilenet(object):
         return output
 
     def _preprocess(self, image):
-        image = np.array(image, dtype=np.float)
-        image = image / 255
-        processed_image = np.expand_dims(resize(image, (self.input_shape, self.input_shape)), axis=0)
-        processed_image = processed_image.transpose((0, 3, 1, 2))
-
-        return processed_image
+        try:
+            image = np.array(image, dtype=np.float)
+            image = image / 255
+            processed_image = np.expand_dims(resize(image, (self.input_shape, self.input_shape)), axis=0)
+            processed_image = processed_image.transpose((0, 3, 1, 2))
+            return processed_image
+        except Exception as ex:
+            print("preprocess", ex)
+        return False
 
     def detect(self, image):
         image = self._preprocess(image)

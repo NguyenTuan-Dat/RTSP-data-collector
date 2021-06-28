@@ -4,14 +4,11 @@ import numpy as np
 from face_detection import FaceDetection
 from openvino.inference_engine import IECore
 
-PATH_TO_SAVE = "/Users/ntdat/Downloads/mask_224x224/Normal"
+PATH_TO_SAVE = "/Users/ntdat/Downloads/New Masks Dataset/Train/NonMask_cropped"
 
 # path to models
 FACEDETECTION_XML_PATH = "./models/face-detection-retail-0004.xml"
 FACEDETECTION_BIN_PATH = "./models/face-detection-retail-0004.bin"
-
-GLASS_MOBILENET_XML_PATH = "/Volumes/JIOOUM/glass_tf_4000.xml"
-GLASS_MOBILENET_BIN_PATH = "/Volumes/JIOOUM/glass_tf_4000.bin"
 
 ie = IECore()
 
@@ -33,7 +30,7 @@ def read_files(path_to_dir):
         if len(outputs) != 0:
             outputs = np.array(outputs)
             color = (0, 255, 0)
-            print(outputs)
+            # print(outputs)
             for output in outputs:
                 try:
                     # get face location
@@ -50,10 +47,7 @@ def read_files(path_to_dir):
                         x_min = 0 if x_min < 0 else int(x_min)
                         x_max = w if x_max > w else int(x_max)
 
-                    # crop face
                     img_cropped = img[y_min:y_max, x_min:x_max]
-                    # cv2.imshow("AloAlo", img_cropped)
-                    # cv2.waitKey()
                     img_cropped = cv2.resize(img_cropped, (224, 224))
                     cv2.imwrite(os.path.join(PATH_TO_SAVE, img_name), img_cropped)
                 except Exception as ex:
@@ -83,4 +77,4 @@ def read_files(path_to_dir):
 #                 print(ex)
 
 
-read_files("/Users/ntdat/Downloads/data/without_mask")
+read_files("/Users/ntdat/Downloads/New Masks Dataset/Validation/Non Mask")
