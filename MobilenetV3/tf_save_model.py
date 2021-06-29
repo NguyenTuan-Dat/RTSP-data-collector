@@ -1,8 +1,5 @@
-import numpy as np
-import tensorflow as tf
 import keras2onnx
 import onnxruntime
-from mobilenetv3 import MobileNetV3
 from tensorflow.keras.models import model_from_json
 
 INPUT_SIZE = 224

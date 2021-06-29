@@ -1,7 +1,7 @@
 from mxnet.gluon import nn
 from mxnet.gluon.loss import Loss
 
-from TestTrain.CustomMobilenet import MobileNetV2
+from CustomMobilenet import MobileNetV2
 from fmobilenetv3 import get_symbol
 from mxnet.gluon.data.vision import datasets, transforms
 from mxnet import gluon, autograd, init, np, npx, is_np_array
@@ -43,8 +43,8 @@ class CustomLoss(Loss):
     def hybrid_forward(self, F, preds, labels):
         losses = None
         for idx, pred in enumerate(preds):
-            # loss = F.square(labels[idx] - pred)
-            loss = labels[idx] * F.log(pred + 1e-10)
+            loss = F.square(labels[idx] - pred)
+            # loss = labels[idx] * F.log(pred + 1e-10)
             loss = loss.sum()
             loss = loss if mx.nd.argmax(labels[idx]) != 0 else loss * 2
             if idx == 0:
@@ -80,7 +80,12 @@ path_to_data_resized = '/content/faces-spring-2020-224_mxnet'
 mnist_train = mx.gluon.data.vision.datasets.ImageFolderDataset(
     os.path.join(path_to_data_resized, 'train'))
 
-transformer = transforms.Compose([transforms.Resize(INPUT_SHAPE), transforms.ToTensor()])
+transformer = transforms.Compose([transforms.Resize(INPUT_SHAPE),
+                                  transforms.RandomBrightness(0.5),
+                                  transforms.RandomFlipLeftRight(),
+                                  transforms.RandomSaturation(0.5),
+                                  transforms.ToTensor()
+                                  ])
 
 batch_size = 256
 train_data = gluon.data.DataLoader(
@@ -104,7 +109,7 @@ elif args.nn == 'mobilenetv3':
     net = mobilenetv3.MobileNetV3(version='small', num_classes=NUM_CLASSES)
 elif args.nn == 'gmobilenetv3':
     kwargs = {'ctx': mx.gpu(), 'pretrained': True, 'classes': 3, 'last_gamma': True}
-    net = gluoncv.model_zoo.get_model("mobilenetv3_small", **kwargs)
+    net = gluoncv.model_zoo.get_model("mobilenetv3_small", classes=NUM_CLASSES)
 elif args.nn == 'base_unet':
     net = BaseUnet(num_classes=NUM_CLASSES)
 elif args.nn == 'mobilenetv2_50':
@@ -138,8 +143,8 @@ for epoch in range(args.num_epoch):
 
             loss = loss_softmax_ce
 
-            # loss_custom = custom_loss(output, label_onehot)
-            # loss = loss_softmax_ce.mean() + 0.2 * loss_custom.mean()
+            loss_custom = custom_loss(output, label_onehot)
+            loss = 0.8 * loss_softmax_ce.mean() + 0.2 * loss_custom.mean()
         loss.backward()
 
         # update parameters
