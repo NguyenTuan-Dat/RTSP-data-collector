@@ -4,7 +4,7 @@ import numpy as np
 from face_detection import FaceDetection
 from openvino.inference_engine import IECore
 
-PATH_TO_SAVE = "/Users/ntdat/Downloads/New Masks Dataset/Train/NonMask_cropped"
+PATH_TO_SAVE = "/Users/ntdat/Downloads/CROP/cropped"
 
 # path to models
 FACEDETECTION_XML_PATH = "./models/face-detection-retail-0004.xml"
@@ -18,40 +18,42 @@ facedetection = FaceDetection(ie, FACEDETECTION_XML_PATH, FACEDETECTION_BIN_PATH
 
 def read_files(path_to_dir):
     for img_name in os.listdir(path_to_dir):
-        if ".DS_Store" == img_name:
+        if ".DS_Store" == img_name or img_name == "untitled folder":
             continue
+        try:
+            img = cv2.imread(os.path.join(path_to_dir, img_name))
+            h, w, c = img.shape
 
-        img = cv2.imread(os.path.join(path_to_dir, img_name))
-        h, w, c = img.shape
+            # get face on frame
+            outputs = facedetection.detect(img)
 
-        # get face on frame
-        outputs = facedetection.detect(img)
+            if len(outputs) != 0:
+                outputs = np.array(outputs)
+                color = (0, 255, 0)
+                # print(outputs)
+                for output in outputs:
+                    try:
+                        # get face location
+                        x_min, y_min, x_max, y_max = (output * [w, h, w, h]).astype(int)
 
-        if len(outputs) != 0:
-            outputs = np.array(outputs)
-            color = (0, 255, 0)
-            # print(outputs)
-            for output in outputs:
-                try:
-                    # get face location
-                    x_min, y_min, x_max, y_max = (output * [w, h, w, h]).astype(int)
+                        if x_max - x_min > y_max - y_min:
+                            y_max += ((x_max - x_min) - (y_max - y_min)) / 2
+                            y_min -= ((x_max - x_min) - (y_max - y_min)) / 2
+                            y_min = 0 if y_min < 0 else int(y_min)
+                            y_max = h if y_max > h else int(y_max)
+                        else:
+                            x_max += ((y_max - y_min) - (x_max - x_min)) / 2
+                            x_min -= ((y_max - y_min) - (x_max - x_min)) / 2
+                            x_min = 0 if x_min < 0 else int(x_min)
+                            x_max = w if x_max > w else int(x_max)
 
-                    if x_max - x_min > y_max - y_min:
-                        y_max += ((x_max - x_min) - (y_max - y_min)) / 2
-                        y_min -= ((x_max - x_min) - (y_max - y_min)) / 2
-                        y_min = 0 if y_min < 0 else int(y_min)
-                        y_max = h if y_max > h else int(y_max)
-                    else:
-                        x_max += ((y_max - y_min) - (x_max - x_min)) / 2
-                        x_min -= ((y_max - y_min) - (x_max - x_min)) / 2
-                        x_min = 0 if x_min < 0 else int(x_min)
-                        x_max = w if x_max > w else int(x_max)
-
-                    img_cropped = img[y_min:y_max, x_min:x_max]
-                    img_cropped = cv2.resize(img_cropped, (224, 224))
-                    cv2.imwrite(os.path.join(PATH_TO_SAVE, img_name), img_cropped)
-                except Exception as ex:
-                    print(ex)
+                        img_cropped = img[y_min:y_max, x_min:x_max]
+                        img_cropped = cv2.resize(img_cropped, (224, 224))
+                        cv2.imwrite(os.path.join(PATH_TO_SAVE, img_name), img_cropped)
+                    except Exception as ex:
+                        print(ex)
+        except Exception as ex:
+            print(ex)
 
 
 # def read_files(path_to_folder, path_to_save):
@@ -77,4 +79,4 @@ def read_files(path_to_dir):
 #                 print(ex)
 
 
-read_files("/Users/ntdat/Downloads/New Masks Dataset/Validation/Non Mask")
+read_files("/Users/ntdat/Downloads/CROP")

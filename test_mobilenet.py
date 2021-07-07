@@ -9,6 +9,7 @@ import argparse
 import time
 import os
 import shutil
+import json
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model", "-m", choices=['fmobilenetv3', 'mobilenetv3', 'base_unet'])
@@ -146,24 +147,32 @@ if args.cam:
         cv2.imshow("AloAlo", frame)
         cv2.waitKey(1)
 else:
-    # dirs = os.listdir("/Users/ntdat/Downloads/faces-spring-2020")
-    # for dir in dirs:
-    #     if dir == ".DS_Store":
-    #         continue
+    PATH_TO_DATA_FOLDER = "/Users/ntdat/Downloads/face_cropped"
+    # PATH_TO_DATA_FOLDER = "/Users/ntdat/Documents/FaceRecognitionResearch/CompanyProject/Data/Cropped_by_scrfd_classify"
+    classes = ["Glass", "Mask", "Normal"]
+    cases = np.zeros((3, 3), dtype=np.int)
+    false_name = dict()
+    false_name["Glass"] = []
+    false_name["Mask"] = []
+    false_name["Normal"] = []
 
-    for r, d, fs in os.walk("/Users/ntdat/Downloads/mask_224x224/Normal"):
-        for f in fs:
-            if ".jpg" in f:
-                img = cv2.imread(os.path.join(r, f))
+    for dir in os.listdir(PATH_TO_DATA_FOLDER):
+        if dir != "Glass" and dir != "Mask" and dir != "Normal":
+            continue
+        for image_name in os.listdir(os.path.join(PATH_TO_DATA_FOLDER, dir)):
+            try:
+                # if image_name.split("_")[-2] != "0":
+                #     continue
+                image = cv2.imread(os.path.join(PATH_TO_DATA_FOLDER, dir, image_name))
+                result = glass_detector.detect(image)['softmax0_softmax0'][0]
+                argmax = np.argmax(result)
+                idx = classes.index(dir)
+                cases[idx][argmax] += 1
+                if argmax != idx:
+                    false_name[dir].append({"image_name": image_name, "pred": str(argmax)})
+            except Exception as ex:
+                print(image_name)
 
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-
-                result = glass_detector.detect(img)['softmax0_softmax0'][0]
-
-                if result[1] > result[0]:
-                    shutil.move(os.path.join(r, f),
-                                os.path.join("/Users/ntdat/Downloads/mask_224x224/Glass/", f))
-                # cv2.putText(img, text=str(result), org=(50, 50), fontFace=cv2.INTER_AREA, fontScale=1,
-                #             color=color)
-                # cv2.imshow("AloAlo", img)
-                # cv2.waitKey()
+    print("Case", repr(cases))
+    with open("False_cases.json", "w") as f:
+        f.write(json.dumps(false_name))

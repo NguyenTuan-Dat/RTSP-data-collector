@@ -2,9 +2,9 @@ import seaborn as sn
 import pandas as pd
 import matplotlib.pyplot as plt
 
-array = [[5836, 158, 1286],
-         [114, 4368, 68],
-         [67, 5, 6892]]
+array = [[7487, 4, 488],
+         [53, 6274, 38],
+         [232, 33, 7452]]
 
 df_cm = pd.DataFrame(array, index=["Glass", "Mask", "Normal"],
                      columns=["Glass", "Mask", "Normal"])

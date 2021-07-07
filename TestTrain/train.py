@@ -43,7 +43,7 @@ class CustomLoss(Loss):
     def hybrid_forward(self, F, preds, labels):
         losses = None
         for idx, pred in enumerate(preds):
-            loss = F.square(labels[idx] - pred)
+            loss = F.abs(labels[idx] - pred)
             # loss = labels[idx] * F.log(pred + 1e-10)
             loss = loss.sum()
             loss = loss if mx.nd.argmax(labels[idx]) != 0 else loss * 2
@@ -113,7 +113,7 @@ elif args.nn == 'gmobilenetv3':
 elif args.nn == 'base_unet':
     net = BaseUnet(num_classes=NUM_CLASSES)
 elif args.nn == 'mobilenetv2_50':
-    net = MobileNetV2(classes=NUM_CLASSES, multiplier=0.5)
+    net = gluon.model_zoo.vision.MobileNetV2(classes=NUM_CLASSES, multiplier=0.5)
     net.output.add(Softmax())
 elif args.nn == 'mobilenetv2_25':
     net = gluon.model_zoo.vision.MobileNetV2(classes=NUM_CLASSES, multiplier=0.25)
@@ -144,7 +144,7 @@ for epoch in range(args.num_epoch):
             loss = loss_softmax_ce
 
             loss_custom = custom_loss(output, label_onehot)
-            loss = 0.8 * loss_softmax_ce.mean() + 0.2 * loss_custom.mean()
+            loss = 0.7 * loss_softmax_ce.mean() + 0.3 * loss_custom.mean()
         loss.backward()
 
         # update parameters

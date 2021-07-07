@@ -3,9 +3,10 @@ import json
 import os
 
 PATH_TO_DATA = "/Users/ntdat/Downloads/face_cropped"
+# PATH_TO_DATA = "/Users/ntdat/Documents/FaceRecognitionResearch/CompanyProject/Data/Cropped_by_scrfd_classify"
 PATH_TO_JSON = "/Users/ntdat/Documents/FaceRecognitionResearch/CompanyProject/fid-face/False_cases.json"
 PATH_TO_SAVE = "/Users/ntdat/Downloads/False_cases_classify/"
-CASE = "Glass"
+CASE = "Mask"
 
 if not os.path.exists(PATH_TO_SAVE):
     os.mkdir(PATH_TO_SAVE)
