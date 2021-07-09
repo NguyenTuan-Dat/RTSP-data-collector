@@ -23,12 +23,21 @@ count = 0
 _from_to = np.zeros((3, 3), dtype=np.int)
 
 for filename in keys:
+    case = "Normal"
+
+    if "glass" in filename:
+        case = "Glass"
+    elif "mask" in filename:
+        case = "Mask"
+    elif "hat" in filename:
+        case = "Hat"
     arr = filename.split('_')
-    if not os.path.exists(os.path.join(NEW_FEATURE_FOLDER, arr[0])):
-        os.mkdir(os.path.join(NEW_FEATURE_FOLDER, arr[0]))
+    if not os.path.exists(os.path.join(NEW_FEATURE_FOLDER, case)):
+        os.mkdir(os.path.join(NEW_FEATURE_FOLDER, case))
     old_pose = int(arr[-2])
+
     del arr[-2]
-    if not os.path.exists(os.path.join(FEATURE_FOLDER, arr[0], filename + ".jpg")):
+    if not os.path.exists(os.path.join(FEATURE_FOLDER, case, filename + ".jpg")):
         print(os.path.join(FEATURE_FOLDER, filename + ".jpg"))
         continue
 
@@ -44,8 +53,8 @@ for filename in keys:
         count += 1
 
     _from_to[old_pose][change_pose_name] += 1
-    shutil.copyfile(os.path.join(FEATURE_FOLDER, arr[0], filename + ".jpg"),
-                    os.path.join(NEW_FEATURE_FOLDER, arr[0], new_filename + ".jpg"))
+    shutil.copyfile(os.path.join(FEATURE_FOLDER, case, filename + ".jpg"),
+                    os.path.join(NEW_FEATURE_FOLDER, case, new_filename + ".jpg"))
 
 print("change_name_count: ", count)
 print(_from_to)

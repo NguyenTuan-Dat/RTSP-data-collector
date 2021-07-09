@@ -3,8 +3,8 @@ from mxnet import gluon, autograd, init, np, npx, is_np_array
 import time
 import os
 import argparse
-from ..mobilenetv3 import *
 from dataloader import MultitaskDataLoader
+import mxnet as mx
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--input_shape", type=int, default=224)
@@ -15,13 +15,16 @@ args = parser.parse_args()
 NUM_CLASSES = args.num_classes
 INPUT_SHAPE = args.input_shape
 
-if not os.path.exists("/content/drive/MyDrive/Colab Notebooks/HumanFacesRecognition/Models_{}".format(args.nn)):
-    os.mkdir("/content/drive/MyDrive/Colab Notebooks/HumanFacesRecognition/Models_{}".format(args.nn))
+if not os.path.exists(
+        "/content/drive/MyDrive/Colab Notebooks/HumanFacesRecognition/Models_{}".format("mobilenetv2_50")):
+    os.mkdir("/content/drive/MyDrive/Colab Notebooks/HumanFacesRecognition/Models_{}".format("mobilenetv2_50"))
 
 path_to_data_resized = '/content/faces-spring-2020-224_mxnet'
 
 mnist_train = mx.gluon.data.vision.datasets.ImageFolderDataset(
     os.path.join(path_to_data_resized, 'train'))
+
+print(mnist_train)
 
 transformer = transforms.Compose([transforms.Resize(INPUT_SHAPE),
                                   transforms.RandomBrightness(0.5),
@@ -34,6 +37,7 @@ batch_size = 256
 train_data = MultitaskDataLoader(batch_size=batch_size,
                                  input_shape=INPUT_SHAPE,
                                  path_to_data_folder=os.path.join(path_to_data_resized, "train"))
+train_data.get_data()
 
 # mnist_valid = mx.gluon.data.vision.datasets.ImageFolderDataset(
 #     os.path.join(path_to_data_resized, 'test'))

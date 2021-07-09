@@ -22,5 +22,13 @@ class MultitaskDataLoader:
             mnist.transform_first(self.transformer), batch_size=self.batch_size, shuffle=True, num_workers=4)
 
         for input, label in data:
-            print(input.shape, label.shape)
-            print(label)
+            multitask_labels = []
+            for idx, i in enumerate(input):
+                multitask_label = mx.ndarray.zeros((3, 2))
+                multitask_labels[i][1] = 1
+                multitask_labels.append(multitask_labels)
+
+            multitask_labels = mx.nd.array(multitask_labels)
+            datasets = mx.gluon.data.datasets.ArrayDataset(input, multitask_labels)
+
+        return datasets
