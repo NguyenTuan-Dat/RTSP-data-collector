@@ -75,8 +75,6 @@ for epoch in range(args.num_epoch):
     for data, label in train_data:
         # forward + backward
         data = data.copyto(mx.gpu(0)).as_nd_ndarray()
-        label_onehot = mx.nd.one_hot(label, 3)
-        label_onehot = label_onehot.copyto(mx.gpu(0)).as_nd_ndarray()
         label = label.copyto(mx.gpu(0)).as_nd_ndarray()
         with autograd.record():
             output = net(data)
@@ -92,7 +90,6 @@ for epoch in range(args.num_epoch):
     # calculate validation accuracy
     for data, label in valid_data:
         data = data.copyto(mx.gpu(0)).as_nd_ndarray()
-        # label = mx.nd.one_hot(label, 3)
         label = label.copyto(mx.gpu(0)).as_nd_ndarray()
         valid_acc += acc(net(data), label)
     print("Epoch %d: loss %.3f, train acc %.3f, test acc %.3f, in %.1f sec" % (
