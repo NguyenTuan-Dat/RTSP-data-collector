@@ -12,7 +12,7 @@ import shutil
 import json
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--model", "-m", choices=['fmobilenetv3', 'mobilenetv3', 'base_unet'])
+parser.add_argument("--model", "-m", choices=['fmobilenetv3', 'mobilenetv3', 'base_unet', "multitask"])
 parser.add_argument("--cam", "-c", action="store_true")
 parser.add_argument("--model_path", "-p", type=str, default="./models/glass_mask_mxnet")
 args = parser.parse_args()
@@ -120,6 +120,14 @@ if args.cam:
                         result = glass_detector.detect(img_cropped)['softmax0_softmax0'][0]
                     elif args.model == 'mobilenetv3':
                         result = glass_detector.detect(img_cropped)['mobilenetv30_flatten0_flatten0'][0]
+                    elif args.model == 'multitask':
+                        result = glass_detector.detect(img_cropped)
+                        glass = np.argmax(result['mobilenetv2multitask0_output_glasses_softmax0_softmax0'][0])
+                        mask = np.argmax(result['mobilenetv2multitask0_output_mask_softmax0_softmax0'][0])
+                        normal = np.argmax(result['mobilenetv2multitask0_output_normal_softmax0_softmax0'][0])
+
+                        print("detected: {}, {}, {}".format(glass, mask, normal))
+                        continue
                     else:
                         result = glass_detector.detect(img_cropped)['mobilenetv20_output_flatten0_flatten0'][0]
                         print(result)

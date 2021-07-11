@@ -4,7 +4,7 @@ import time
 import os
 import argparse
 
-from TestTrain.MultitaskLearning.multitask_model import MobileNetV2Multitask
+from multitask_model import MobileNetV2Multitask
 from dataloader import MultitaskDataLoader
 import mxnet as mx
 
@@ -18,13 +18,51 @@ NUM_CLASSES = args.num_classes
 INPUT_SHAPE = args.input_shape
 
 
-def acc(output, label):
-    new_label = np.zeros((3, 2), dtype=np.int)
-    new_label[new_label != label][0] = 1
-    new_label[label][1] = 1
+def label2vec(labels):
+    label_vecs = []
+    for label in labels:
+        vec = mx.nd.zeros(3)
+        if label == 0:
+            vec[0] = 1
+        elif label == 1:
+            vec[0] = 1
+            vec[2] = 1
+        elif label == 2:
+            vec[0] = 1
+            vec[1] = 1
+        elif label == 3:
+            vec[2] = 1
+        elif label == 4:
+            vec[1] = 1
+        elif label == 5:
+            vec[0] = 1
+            vec[1] = 1
+            vec[2] = 1
+        elif label == 6:
+            vec[1] = 1
+            vec[2] = 1
+        label_vecs.append(vec)
+    label_vecs = mx.nd.array(label_vecs)
+    print(label_vecs)
+    return label_vecs
 
-    print(new_label)
 
+def one_hot_label(label):
+    label_onehot = mx.nd.one_hot(label, 3)
+    new_label = mx.nd.one_hot(label_onehot, 2, dtype=np.int8)
+
+    return new_label
+
+
+def acc(output, label_one_hot):
+    glasses_acc = cal_acc(output[0], label_one_hot[1][0])
+    mask_acc = cal_acc(output[1], label_one_hot[1][1])
+    normal_acc = cal_acc(output[2], label_one_hot[1][2])
+
+    return np.array([glasses_acc, mask_acc, normal_acc])
+
+
+def cal_acc(output, label):
     return (output.argmax(axis=1) ==
             label.astype("float32")).mean().asscalar()
 
@@ -70,32 +108,45 @@ softmax_cross_entropy = mx.gluon.loss.SoftmaxCrossEntropyLoss()
 trainer = gluon.Trainer(net.collect_params(), 'adam', {'learning_rate': 0.0005})
 
 for epoch in range(args.num_epoch):
-    train_loss, train_acc, valid_acc = 0., 0., 0.
+    train_loss, train_acc, valid_acc = 0., np.array([0., 0., 0.]), np.array([0., 0., 0.])
     tic = time.time()
     for data, label in train_data:
         # forward + backward
         data = data.copyto(mx.gpu(0)).as_nd_ndarray()
         label = label.copyto(mx.gpu(0)).as_nd_ndarray()
+        label_one_hot = one_hot_label(label).T
         with autograd.record():
-            output = net(data)
-            loss_softmax_ce = softmax_cross_entropy(output, label)
-            loss = loss_softmax_ce
+            pred_glasses, pred_mask, pred_normal = net(data)
+            loss_pred_glasses = softmax_cross_entropy(pred_glasses, label_one_hot[1][0])
+            loss_pred_mask = softmax_cross_entropy(pred_mask, label_one_hot[1][1])
+            loss_pred_normal = softmax_cross_entropy(pred_normal, label_one_hot[1][2])
+
+            loss = loss_pred_glasses.mean() + loss_pred_mask.mean() + loss_pred_normal.mean()
         loss.backward()
 
         # update parameters
         trainer.step(batch_size)
         # calculate training metrics
         train_loss += loss.mean().asscalar()
-        train_acc += acc(output, label)
+        train_acc += acc((pred_glasses, pred_mask, pred_normal), label_one_hot)
     # calculate validation accuracy
     for data, label in valid_data:
         data = data.copyto(mx.gpu(0)).as_nd_ndarray()
         label = label.copyto(mx.gpu(0)).as_nd_ndarray()
-        valid_acc += acc(net(data), label)
-    print("Epoch %d: loss %.3f, train acc %.3f, test acc %.3f, in %.1f sec" % (
-        epoch, train_loss / len(train_data), train_acc / len(train_data),
-        valid_acc / len(valid_data), time.time() - tic))
+        label_one_hot = one_hot_label(label).T
+        valid_acc += acc(net(data), label_one_hot)
+    train_accuracy = np.array(train_acc) / len(train_data)
+    valid_accuracy = np.array(valid_acc) / len(valid_data)
+    print("Epoch {}: loss {:.3f}, train acc {}, test acc {}, in {:.1f} sec".format(epoch,
+                                                                                   train_loss / len(train_data),
+                                                                                   str(train_accuracy),
+                                                                                   str(valid_accuracy),
+                                                                                   time.time() - tic))
+    if not os.path.exists("/content/drive/MyDrive/Colab Notebooks/HumanFacesRecognition/Models_Multitask"):
+        os.mkdir("/content/drive/MyDrive/Colab Notebooks/HumanFacesRecognition/Models_Multitask")
     net.export(
-        "/content/drive/MyDrive/Colab Notebooks/HumanFacesRecognition/Models_{}/{}_{}_{}".format(args.nn, args.nn,
-                                                                                                 INPUT_SHAPE, epoch),
+        "/content/drive/MyDrive/Colab Notebooks/HumanFacesRecognition/Models_{}/{}_{}_{}".format("Multitask",
+                                                                                                 "Multitask",
+                                                                                                 INPUT_SHAPE,
+                                                                                                 epoch),
         epoch=1)

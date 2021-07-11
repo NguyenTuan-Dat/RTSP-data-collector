@@ -1,4 +1,6 @@
+from mxnet import is_np_array
 from mxnet.gluon import nn
+import mxnet as mx
 
 
 class RELU6(nn.HybridBlock):
@@ -114,34 +116,36 @@ class MobileNetV2Multitask(nn.HybridBlock):
                     Softmax()
                 )
 
-                self.output_mask = nn.HybridSequential(prefix='output_mask_')
-                with self.output_mask.name_scope():
-                    self.output_mask.add(
-                        nn.Conv2D(2, 1, use_bias=False, prefix='pred_mask_'),
-                        nn.Flatten(),
-                        Softmax()
-                    )
+            self.output_mask = nn.HybridSequential(prefix='output_mask_')
+            with self.output_mask.name_scope():
+                self.output_mask.add(
+                    nn.Conv2D(2, 1, use_bias=False, prefix='pred_mask_'),
+                    nn.Flatten(),
+                    Softmax()
+                )
 
-                self.output_normal = nn.HybridSequential(prefix='output_normal_')
-                with self.output_normal.name_scope():
-                    self.output_normal.add(
-                        nn.Conv2D(2, 1, use_bias=False, prefix='pred_normal_'),
-                        nn.Flatten(),
-                        Softmax()
-                    )
+            self.output_normal = nn.HybridSequential(prefix='output_normal_')
+            with self.output_normal.name_scope():
+                self.output_normal.add(
+                    nn.Conv2D(2, 1, use_bias=False, prefix='pred_normal_'),
+                    nn.Flatten(),
+                    Softmax()
+                )
 
-                self.output_hat = nn.HybridSequential(prefix='output_hat_')
-                with self.output_hat.name_scope():
-                    self.output_hat.add(
-                        nn.Conv2D(2, 1, use_bias=False, prefix='pred_hat_'),
-                        nn.Flatten(),
-                        Softmax()
-                    )
+            self.output_hat = nn.HybridSequential(prefix='output_hat_')
+            with self.output_hat.name_scope():
+                self.output_hat.add(
+                    nn.Conv2D(2, 1, use_bias=False, prefix='pred_hat_'),
+                    nn.Flatten(),
+                    Softmax()
+                )
 
-        def hybrid_forward(self, F, x):
-            x = self.features(x)
-            pred_glasses = self.output_glasses(x)
-            pred_mask = self.output_mask(x)
-            pred_normal = self.output_normal(x)
-            pred_hat = self.output_hat(x)
-            return pred_glasses, pred_mask, pred_normal, pred_hat
+    def hybrid_forward(self, F, x):
+        x = self.features(x)
+        pred_glasses = self.output_glasses(x)
+        pred_mask = self.output_mask(x)
+        pred_normal = self.output_normal(x)
+        # pred_hat = self.output_hat(x)
+        # return pred_glasses, pred_mask, pred_normal, pred_hat
+        output = mx.symbol.Group([pred_glasses, pred_mask, pred_normal])
+        return output
