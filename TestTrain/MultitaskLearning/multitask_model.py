@@ -124,13 +124,13 @@ class MobileNetV2Multitask(nn.HybridBlock):
                     Softmax()
                 )
 
-            self.output_normal = nn.HybridSequential(prefix='output_normal_')
-            with self.output_normal.name_scope():
-                self.output_normal.add(
-                    nn.Conv2D(2, 1, use_bias=False, prefix='pred_normal_'),
-                    nn.Flatten(),
-                    Softmax()
-                )
+            # self.output_normal = nn.HybridSequential(prefix='output_normal_')
+            # with self.output_normal.name_scope():
+            #     self.output_normal.add(
+            #         nn.Conv2D(2, 1, use_bias=False, prefix='pred_normal_'),
+            #         nn.Flatten(),
+            #         Softmax()
+            #     )
 
             self.output_hat = nn.HybridSequential(prefix='output_hat_')
             with self.output_hat.name_scope():
@@ -144,8 +144,8 @@ class MobileNetV2Multitask(nn.HybridBlock):
         x = self.features(x)
         pred_glasses = self.output_glasses(x)
         pred_mask = self.output_mask(x)
-        pred_normal = self.output_normal(x)
-        # pred_hat = self.output_hat(x)
+        # pred_normal = self.output_normal(x)
+        pred_hat = self.output_hat(x)
         # return pred_glasses, pred_mask, pred_normal, pred_hat
-        output = mx.symbol.Group([pred_glasses, pred_mask, pred_normal])
+        output = mx.symbol.Group([pred_glasses, pred_mask, pred_hat])
         return output
