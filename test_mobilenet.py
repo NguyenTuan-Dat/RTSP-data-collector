@@ -124,7 +124,7 @@ if args.cam:
                         result = glass_detector.detect(img_cropped)
                         glass = np.argmax(result['mobilenetv2multitask0_output_glasses_softmax0_softmax0'][0])
                         mask = np.argmax(result['mobilenetv2multitask0_output_mask_softmax0_softmax0'][0])
-                        normal = np.argmax(result['mobilenetv2multitask0_output_normal_softmax0_softmax0'][0])
+                        normal = np.argmax(result['mobilenetv2multitask0_output_hat_softmax0_softmax0'][0])
 
                         print("detected: {}, {}, {}".format(glass, mask, normal))
                         continue

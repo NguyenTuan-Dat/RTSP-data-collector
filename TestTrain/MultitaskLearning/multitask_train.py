@@ -21,36 +21,34 @@ INPUT_SHAPE = args.input_shape
 def label2vec(labels):
     label_vecs = []
     for label in labels:
-        vec = mx.nd.zeros(3)
-        if label == 0:
+        vec = [0, 0, 0]  # Normal
+        if label == 0:  # Glasses
             vec[0] = 1
-        elif label == 1:
+        elif label == 1:  # Glasses + Hat
             vec[0] = 1
             vec[2] = 1
-        elif label == 2:
+        elif label == 2:  # Glasses + Mask
             vec[0] = 1
             vec[1] = 1
-        elif label == 3:
+        elif label == 3:  # Hat
             vec[2] = 1
-        elif label == 4:
+        elif label == 4:  # Mask
             vec[1] = 1
-        elif label == 5:
+        elif label == 5:  # Glasses + Mask + Hat
             vec[0] = 1
             vec[1] = 1
             vec[2] = 1
-        elif label == 6:
+        elif label == 6:  # Mask + Hat
             vec[1] = 1
             vec[2] = 1
         label_vecs.append(vec)
-    label_vecs = mx.nd.array(label_vecs)
-    print(label_vecs)
+    label_vecs = np.array(label_vecs)
     return label_vecs
 
 
 def one_hot_label(label):
-    label_onehot = mx.nd.one_hot(label, 3)
+    label_onehot = label2vec(label).copyto(mx.gpu(0)).as_nd_ndarray()
     new_label = mx.nd.one_hot(label_onehot, 2, dtype=np.int8)
-
     return new_label
 
 
