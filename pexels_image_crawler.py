@@ -4,12 +4,12 @@ import os
 import requests
 
 PEXELS_API_KEY = "563492ad6f917000010000017e120edb04bc4032aff251e04b8487d2"
-PATH_TO_SAVE = "/Users/ntdat/Downloads/Cropped_by_scrfd/crawl_from_pexels/Hat"
+PATH_TO_SAVE = "/Users/ntdat/Downloads/Cropped_by_scrfd/crawl_from_pexels/Glasses+Mask"
 
 api = API(PEXELS_API_KEY)
 
 for idx in range(0, 100):
-    api.search('Vietnamese hat', page=idx, results_per_page=100)
+    api.search('eyeglasses mask', page=idx, results_per_page=100)
 
     photos = api.get_entries()
     # Loop the five photos

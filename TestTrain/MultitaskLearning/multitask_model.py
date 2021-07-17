@@ -110,24 +110,19 @@ class MobileNetV2Multitask(nn.HybridBlock):
 
             self.output_glasses = nn.HybridSequential(prefix='output_glasses_')
             with self.output_glasses.name_scope():
+                _add_conv(self.output_glasses, 128, kernel=1, stride=1, relu6=True)
+                _add_conv(self.output_glasses, 2, kernel=1, stride=1)
+
                 self.output_glasses.add(
-                    nn.Conv2D(512, 1, use_bias=False),
-                    nn.Conv2D(256, 1, use_bias=False),
-                    nn.Conv2D(128, 1, use_bias=False),
-                    nn.Conv2D(64, 1, use_bias=False),
-                    nn.Conv2D(2, 1, use_bias=False, prefix='pred_glasses_'),
                     nn.Flatten(),
                     Softmax()
                 )
 
             self.output_mask = nn.HybridSequential(prefix='output_mask_')
             with self.output_mask.name_scope():
+                _add_conv(self.output_mask, 128, kernel=1, stride=1, relu6=True)
+                _add_conv(self.output_mask, 2, kernel=1, stride=1)
                 self.output_mask.add(
-                    nn.Conv2D(512, 1, use_bias=False),
-                    nn.Conv2D(256, 1, use_bias=False),
-                    nn.Conv2D(128, 1, use_bias=False),
-                    nn.Conv2D(64, 1, use_bias=False),
-                    nn.Conv2D(2, 1, use_bias=False, prefix='pred_mask_'),
                     nn.Flatten(),
                     Softmax()
                 )
@@ -142,12 +137,9 @@ class MobileNetV2Multitask(nn.HybridBlock):
 
             self.output_hat = nn.HybridSequential(prefix='output_hat_')
             with self.output_hat.name_scope():
+                _add_conv(self.output_hat, 128, kernel=1, stride=1, relu6=True)
+                _add_conv(self.output_hat, 2, kernel=1, stride=1)
                 self.output_hat.add(
-                    nn.Conv2D(512, 1, use_bias=False),
-                    nn.Conv2D(256, 1, use_bias=False),
-                    nn.Conv2D(128, 1, use_bias=False),
-                    nn.Conv2D(64, 1, use_bias=False),
-                    nn.Conv2D(2, 1, use_bias=False, prefix='pred_hat_'),
                     nn.Flatten(),
                     Softmax()
                 )

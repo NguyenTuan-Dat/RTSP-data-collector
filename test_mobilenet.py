@@ -121,12 +121,33 @@ if args.cam:
                     elif args.model == 'mobilenetv3':
                         result = glass_detector.detect(img_cropped)['mobilenetv30_flatten0_flatten0'][0]
                     elif args.model == 'multitask':
+                        img_cropped = cv2.resize(img_cropped, (48, 48))
+                        cv2.imshow("aloalolao", img_cropped)
+                        cv2.waitKey(1)
                         result = glass_detector.detect(img_cropped)
                         glass = np.argmax(result['mobilenetv2multitask0_output_glasses_softmax0_softmax0'][0])
                         mask = np.argmax(result['mobilenetv2multitask0_output_mask_softmax0_softmax0'][0])
-                        normal = np.argmax(result['mobilenetv2multitask0_output_hat_softmax0_softmax0'][0])
+                        hat = np.argmax(result['mobilenetv2multitask0_output_hat_softmax0_softmax0'][0])
 
-                        print("detected: {}, {}, {}".format(glass, mask, normal))
+                        color = [0, 0, 0]
+
+                        if glass == 1:
+                            color[0] = 255
+                        if mask == 1:
+                            color[1] = 255
+                        if hat == 1:
+                            color[2] = 255
+
+                        color = tuple(color)
+                        cv2.putText(frame, text=str("{}, {}, {}".format(glass, mask, hat)),
+                                    org=(x_min, y_min),
+                                    fontFace=cv2.INTER_AREA,
+                                    fontScale=1,
+                                    color=color)
+
+                        cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), color=color)
+
+                        print("detected: {}, {}, {}".format(glass, mask, hat))
                         continue
                     else:
                         result = glass_detector.detect(img_cropped)['mobilenetv20_output_flatten0_flatten0'][0]

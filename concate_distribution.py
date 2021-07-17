@@ -6,19 +6,19 @@ ROOT_FOLDER = "/Users/ntdat/Documents/FaceRecognitionResearch/CompanyProject/dis
 
 CASE = [
     [
-        "db_model_mask_glasses_affine_face_features_model_mask_new_pose_Glasses on headpose 0_1626171995.31201.png",
-        "db_model_mask_glasses_affine_face_features_model_mask_new_pose_Mask on headpose 0_1626172189.075299.png",
-        "db_model_mask_glasses_affine_face_features_model_mask_new_pose_Normal on headpose 0_1626172085.05697.png"
+        "db_model_mask_non_glasses_affine_face_features_model_mask_new_pose_Glasses on headpose 0_1626232625.8893461.png",
+        "db_model_mask_non_glasses_affine_face_features_model_mask_new_pose_Mask on headpose 0_1626232860.093028.png",
+        "db_model_mask_non_glasses_affine_face_features_model_mask_new_pose_Normal on headpose 0_1626233870.7573419.png"
     ],
     [
-        "db_model_mask_glasses_affine_face_features_model_mask_new_pose_Glasses on headpose 1_1626172484.980748.png",
-        "db_model_mask_glasses_affine_face_features_model_mask_new_pose_Mask on headpose 1_1626172375.781922.png",
-        "db_model_mask_glasses_affine_face_features_model_mask_new_pose_Normal on headpose 1_1626172549.662718.png"
+        "db_model_mask_non_glasses_affine_face_features_model_mask_new_pose_Glasses on headpose 1_1626233898.9690828.png",
+        "db_model_mask_non_glasses_affine_face_features_model_mask_new_pose_Mask on headpose 1_1626233933.0820138.png",
+        "db_model_mask_non_glasses_affine_face_features_model_mask_new_pose_Normal on headpose 1_1626233970.656728.png"
     ],
     [
-        "db_model_mask_glasses_affine_face_features_model_mask_new_pose_Glasses on headpose 2_1626172753.039148.png",
-        "db_model_mask_glasses_affine_face_features_model_mask_new_pose_Mask on headpose 2_1626172681.978404.png",
-        "db_model_mask_glasses_affine_face_features_model_mask_new_pose_Normal on headpose 2_1626172615.4936.png"
+        "db_model_mask_non_glasses_affine_face_features_model_mask_new_pose_Glasses on headpose 2_1626234006.0665028.png",
+        "db_model_mask_non_glasses_affine_face_features_model_mask_new_pose_Mask on headpose 2_1626234036.617314.png",
+        "db_model_mask_non_glasses_affine_face_features_model_mask_new_pose_Normal on headpose 2_1626234078.185689.png"
     ]
 
 ]
@@ -35,5 +35,5 @@ for case in range(3):
     imgs.append(concat_img)
 
 cv2.imwrite(
-    "/Users/ntdat/Documents/FaceRecognitionResearch/CompanyProject/distribution_reruned_headpose/arcface_model/Model_mask_unknow_vnceleb_all_pose.png",
+    "/Users/ntdat/Documents/FaceRecognitionResearch/CompanyProject/distribution_reruned_headpose/arcface_model/Model_mask_unknow_vnceleb_all_pose_db2.png",
     cv2.vconcat(imgs))
