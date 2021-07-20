@@ -4,24 +4,15 @@ import os
 
 ROOT_FOLDER = "/Users/ntdat/Documents/FaceRecognitionResearch/CompanyProject/distribution_reruned_headpose/TestAutoSave"
 
-CASE = [
-    [
-        "db_model_mask_non_glasses_affine_face_features_model_mask_new_pose_Glasses on headpose 0_1626232625.8893461.png",
-        "db_model_mask_non_glasses_affine_face_features_model_mask_new_pose_Mask on headpose 0_1626232860.093028.png",
-        "db_model_mask_non_glasses_affine_face_features_model_mask_new_pose_Normal on headpose 0_1626233870.7573419.png"
-    ],
-    [
-        "db_model_mask_non_glasses_affine_face_features_model_mask_new_pose_Glasses on headpose 1_1626233898.9690828.png",
-        "db_model_mask_non_glasses_affine_face_features_model_mask_new_pose_Mask on headpose 1_1626233933.0820138.png",
-        "db_model_mask_non_glasses_affine_face_features_model_mask_new_pose_Normal on headpose 1_1626233970.656728.png"
-    ],
-    [
-        "db_model_mask_non_glasses_affine_face_features_model_mask_new_pose_Glasses on headpose 2_1626234006.0665028.png",
-        "db_model_mask_non_glasses_affine_face_features_model_mask_new_pose_Mask on headpose 2_1626234036.617314.png",
-        "db_model_mask_non_glasses_affine_face_features_model_mask_new_pose_Normal on headpose 2_1626234078.185689.png"
-    ]
-
-]
+CASE = [['db_model_arcface_HN_2_face_features_arcface_affine_Glasses on headpose 0_1626523921.075588.png',
+         'db_model_arcface_HN_2_face_features_arcface_affine_Mask on headpose 0_1626523957.4806132.png',
+         'db_model_arcface_HN_2_face_features_arcface_affine_Normal on headpose 0_1626523996.4770958.png'],
+        ['db_model_arcface_HN_2_face_features_arcface_affine_Glasses on headpose 1_1626524047.2216141.png',
+         'db_model_arcface_HN_2_face_features_arcface_affine_Mask on headpose 1_1626524091.384284.png',
+         'db_model_arcface_HN_2_face_features_arcface_affine_Normal on headpose 1_1626524140.724799.png'],
+        ['db_model_arcface_HN_2_face_features_arcface_affine_Glasses on headpose 2_1626524196.60527.png',
+         'db_model_arcface_HN_2_face_features_arcface_affine_Mask on headpose 2_1626524241.769824.png',
+         'db_model_arcface_HN_2_face_features_arcface_affine_Normal on headpose 2_1626524292.537808.png']]
 
 imgs = []
 
@@ -35,5 +26,5 @@ for case in range(3):
     imgs.append(concat_img)
 
 cv2.imwrite(
-    "/Users/ntdat/Documents/FaceRecognitionResearch/CompanyProject/distribution_reruned_headpose/arcface_model/Model_mask_unknow_vnceleb_all_pose_db2.png",
+    "/Users/ntdat/Documents/FaceRecognitionResearch/CompanyProject/distribution_reruned_headpose/arcface_model/Model_arcface_unknow_vnceleb_all_pose_dbHN.png",
     cv2.vconcat(imgs))

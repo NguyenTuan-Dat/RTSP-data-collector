@@ -16,7 +16,6 @@ import os
 import argparse
 import mobilenetv3
 from base_unet import BaseUnet
-import gluoncv
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-nn", type=str, default='mobilenetv3',
@@ -42,7 +41,7 @@ def label2vec(labels):
             real_label = 1
         label_vecs.append(real_label)
     label_vecs = np.array(label_vecs)
-    return label_vecs
+    return mx.nd.array(label_vecs)
 
 
 class CustomLoss(Loss):
@@ -118,9 +117,6 @@ if args.nn == 'fmobilenetv3':
     net = MobileNetV3(classes=NUM_CLASSES, mode="small")
 elif args.nn == 'mobilenetv3':
     net = mobilenetv3.MobileNetV3(version='small', num_classes=NUM_CLASSES)
-elif args.nn == 'gmobilenetv3':
-    kwargs = {'ctx': mx.gpu(), 'pretrained': True, 'classes': 3, 'last_gamma': True}
-    net = gluoncv.model_zoo.get_model("mobilenetv3_small", classes=NUM_CLASSES)
 elif args.nn == 'base_unet':
     net = BaseUnet(num_classes=NUM_CLASSES)
 elif args.nn == 'mobilenetv2_50':
@@ -145,8 +141,7 @@ for epoch in range(args.num_epoch):
     for data, label in train_data:
         # forward + backward
         data = data.copyto(mx.gpu(0)).as_nd_ndarray()
-        label_onehot = mx.nd.one_hot(label, 3)
-        label_onehot = label_onehot.copyto(mx.gpu(0)).as_nd_ndarray()
+        label = label2vec(label)
         label = label.copyto(mx.gpu(0)).as_nd_ndarray()
         with autograd.record():
             output = net(data)
@@ -154,8 +149,6 @@ for epoch in range(args.num_epoch):
 
             loss = loss_softmax_ce
 
-            loss_custom = custom_loss(output, label_onehot)
-            loss = 0.7 * loss_softmax_ce.mean() + 0.3 * loss_custom.mean()
         loss.backward()
 
         # update parameters
@@ -166,7 +159,7 @@ for epoch in range(args.num_epoch):
     # calculate validation accuracy
     for data, label in valid_data:
         data = data.copyto(mx.gpu(0)).as_nd_ndarray()
-        # label = mx.nd.one_hot(label, 3)
+        label = label2vec(label)
         label = label.copyto(mx.gpu(0)).as_nd_ndarray()
         valid_acc += acc(net(data), label)
     print("Epoch %d: loss %.3f, train acc %.3f, test acc %.3f, in %.1f sec" % (

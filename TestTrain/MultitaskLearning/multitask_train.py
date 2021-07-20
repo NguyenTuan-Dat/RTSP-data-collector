@@ -107,6 +107,8 @@ trainer = gluon.Trainer(net.collect_params(), 'adam', {'learning_rate': 0.0005})
 
 for epoch in range(args.num_epoch):
     train_loss, train_acc, valid_acc = 0., np.array([0., 0., 0.]), np.array([0., 0., 0.])
+    train_data = gluon.data.DataLoader(
+        mnist_train.transform_first(transformer), batch_size=batch_size, shuffle=True, num_workers=4)
     tic = time.time()
     for data, label in train_data:
         # forward + backward

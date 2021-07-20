@@ -28,8 +28,6 @@ class GlassMobilenet(object):
 
     def _preprocess(self, image):
         try:
-            image = np.array(image, dtype=np.float)
-            image = image / 255
             processed_image = np.expand_dims(resize(image, (self.input_shape, self.input_shape)), axis=0)
             processed_image = processed_image.transpose((0, 3, 1, 2))
             return processed_image
